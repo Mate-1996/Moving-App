@@ -13,7 +13,7 @@ struct HomeView: View {
     @EnvironmentObject var authManager: AuthManager
     var body: some View {
         VStack {
-                Text("Welcome \(authManager.user?.email ?? "User")")
+                Text("Welcome \(authManager.user?.displayName ?? "User")")
                     .font(.title)
                     .multilineTextAlignment(.center)
                     .padding()

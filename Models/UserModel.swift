@@ -8,15 +8,16 @@
 import Foundation
 import FirebaseFirestore
 
-struct UserModel: Encodable, Decodable {
+struct UserModel: Codable, Identifiable {
     var email: String
     var displayName: String
     var isActive: Bool
     @DocumentID var id: String?
+    var role: UserRole
 }
 
-enum userType {
-    case User
-    case Mover
-    case Admin
+enum UserRole: String, Codable, CaseIterable {
+    case regular
+    case mover
+    case admin
 }

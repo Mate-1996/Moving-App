@@ -30,15 +30,15 @@ struct LoginView: View {
             }
             
             Button("Login") {
-                authManager.login(email: email, password: password) { result in
-                    switch result {
-                    case .success:
-                        print("Login Successful")
-                    case .failure(let error):
-                        self.errorMessage = error.localizedDescription
-                    }
-                }
-            }
+                Task {
+                        await authManager.signIn(email: email, password: password)
+
+                        if let msg = authManager.authError {
+                            self.errorMessage = msg
+                        } else {
+                            print("Login Successful")
+                        }
+                    }            }
             
             NavigationLink(destination: RegisterView()) {
                 Text("Register here!")

@@ -14,6 +14,7 @@ struct RegisterView: View {
     @State private var errorMessage: String?
     
     @EnvironmentObject var authManager: AuthManager
+    @State private var selectedRole: UserRole = .regular
 
     var body: some View {
         VStack(spacing: 16) {
@@ -22,7 +23,6 @@ struct RegisterView: View {
                 .bold()
                 .padding(.bottom, 8)
             
-            // Display Name
             TextField("Enter Display Name", text: $displayName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocapitalization(.words)
@@ -36,6 +36,14 @@ struct RegisterView: View {
             // Password
             SecureField("Enter Password", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            //Role
+            Picker("Role: ", selection: $selectedRole) {
+                ForEach(UserRole.allCases, id: \.self) { role in
+                    Text(role.rawValue).tag(role)
+                }
+            }
+            .pickerStyle(.menu)
             
             // Error Message
             if let errorMessage = errorMessage {
@@ -65,20 +73,24 @@ struct RegisterView: View {
     }
 
     private func registerUser() {
-        // Simple validation
         guard !email.isEmpty, !password.isEmpty, !displayName.isEmpty else {
-            self.errorMessage = "Please fill out all fields."
+            errorMessage = "Please fill out all fields."
             return
         }
 
-        // Call new signUp function
-        authManager.signUp(email: email, password: password, displayName: displayName) { result in
-            switch result {
-            case .success:
+        Task {
+            await authManager.signUp(
+                email: email,
+                password: password,
+                displayName: displayName,
+                role: selectedRole
+            )
+
+            if let msg = authManager.authError {
+                errorMessage = msg
+            } else {
                 print("✅ Registration successful — Firestore user created.")
                 errorMessage = nil
-            case .failure(let error):
-                errorMessage = error.localizedDescription
             }
         }
     }
