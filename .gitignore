@@ -1,0 +1,6 @@
+
+# Xcode (do not commit)
+xcuserdata/
+DerivedData/
+*.xcuserstate
+project.xcworkspace/
