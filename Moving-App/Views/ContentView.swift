@@ -16,7 +16,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             if authManager.user != nil {
-                HomeView()
+                UserView()
             }else {
                 RegisterView()
             }

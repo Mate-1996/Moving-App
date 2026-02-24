@@ -18,6 +18,8 @@ struct UserView: View {
                     .multilineTextAlignment(.center)
                     .padding()
             
+            Text("Your thing is: \(authManager.user?.role.rawValue ?? "Unknown")")
+            
             Button {
                 authManager.signOut()
             } label: {

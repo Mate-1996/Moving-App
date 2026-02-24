@@ -17,7 +17,7 @@ struct UserModel: Codable, Identifiable {
 }
 
 enum UserRole: String, Codable, CaseIterable {
-    case regular
-    case mover
-    case admin
+    case regular = "Regular"
+    case mover = "Mover"
+    case admin = "Admin"
 }
