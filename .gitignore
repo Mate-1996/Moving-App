@@ -1,8 +1,15 @@
+<<<<<<< HEAD
+
+# Xcode (do not commit)
+xcuserdata/
+DerivedData/
+=======
 # macOS
 .DS_Store
 
 # Xcode
 DerivedData/
 xcuserdata/
+>>>>>>> 2715f56c3b5247386caaeefdd8d3a7424446896a
 *.xcuserstate
 project.xcworkspace/
