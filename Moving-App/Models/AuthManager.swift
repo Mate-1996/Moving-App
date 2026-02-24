@@ -12,7 +12,6 @@ final class AuthManager: ObservableObject {
 
     private let db = Firestore.firestore()
 
-    // Call on app start (e.g., .task in your root view)
     func bootstrap() async {
         guard let current = Auth.auth().currentUser else {
             user = nil
@@ -30,7 +29,6 @@ final class AuthManager: ObservableObject {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             let uid = result.user.uid
 
-            // Create user profile document with role
             let profile = UserModel(
                 email: email,
                 displayName: displayName,
@@ -78,7 +76,6 @@ final class AuthManager: ObservableObject {
                 return
             }
 
-            // If profile doesn't exist yet, create a default one
             let fallback = UserModel(
                 email: emailFallback ?? "",
                 displayName: "",

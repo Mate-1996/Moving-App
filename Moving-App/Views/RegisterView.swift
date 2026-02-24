@@ -27,17 +27,16 @@ struct RegisterView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocapitalization(.words)
             
-            // Email
             TextField("Enter Email", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textInputAutocapitalization(.none)
                 .keyboardType(.emailAddress)
             
-            // Password
+
             SecureField("Enter Password", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             
-            //Role
+
             Picker("Role: ", selection: $selectedRole) {
                 ForEach(UserRole.allCases, id: \.self) { role in
                     Text(role.rawValue).tag(role)
@@ -45,15 +44,13 @@ struct RegisterView: View {
             }
             .pickerStyle(.menu)
             
-            // Error Message
             if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
                     .font(.caption)
                     .multilineTextAlignment(.center)
             }
-            
-            // Register Button
+
             Button(action: registerUser) {
                 Text("Register")
                     .frame(maxWidth: .infinity)
@@ -63,7 +60,6 @@ struct RegisterView: View {
                     .cornerRadius(8)
             }
 
-            // Navigation Link
             NavigationLink(destination: LoginView()) {
                 Text("Already have an account? Login here.")
                     .font(.footnote)
@@ -89,7 +85,7 @@ struct RegisterView: View {
             if let msg = authManager.authError {
                 errorMessage = msg
             } else {
-                print("✅ Registration successful — Firestore user created.")
+                print("registration success")
                 errorMessage = nil
             }
         }
