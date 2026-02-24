@@ -8,12 +8,12 @@
 import SwiftUI
 import FirebaseAuth
 
-struct HomeView: View {
+struct UserView: View {
     
     @EnvironmentObject var authManager: AuthManager
     var body: some View {
         VStack {
-                Text("Welcome \(authManager.user?.displayName ?? "User")")
+            Text("Welcome \(authManager.user?.displayName ?? "User")")
                     .font(.title)
                     .multilineTextAlignment(.center)
                     .padding()
@@ -33,5 +33,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
+    UserView()
 }
