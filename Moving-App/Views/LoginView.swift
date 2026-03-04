@@ -14,6 +14,8 @@ struct LoginView: View {
     @EnvironmentObject var authManager: AuthManager
     @State private var errorMessage: String?
     
+    @Environment(\.presentationMode) var presentationMode
+    
     var body: some View {
         VStack {
             Text("Login")
@@ -43,11 +45,13 @@ struct LoginView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
             }
+            Spacer()
+            Divider()
             
-            NavigationLink(destination: RegisterView()) {
-                Text("Back To Register")
-                    .padding()
+            Button("Back to Register") {
+                presentationMode.wrappedValue.dismiss()
             }
+            .font(.subheadline)
         }.padding()
     }
     

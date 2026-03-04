@@ -10,64 +10,55 @@ import FirebaseAuth
 
 struct UserView: View {
     @EnvironmentObject var authManager: AuthManager
-    
     var body: some View {
         VStack {
             Text("Welcome \(authManager.user?.displayName ?? "User")")
-                    .font(.title)
-                    .multilineTextAlignment(.center)
-                    .padding()
+                .font(.title)
+                .multilineTextAlignment(.center)
+                .padding()
             
-            Text("Your thing is: \(authManager.user?.role.rawValue ?? "Unknown")")
+            Text("Your user role is: \(authManager.user?.role.rawValue ?? "Unknown")")
             
-            Button {
-                authManager.signOut()
-            } label: {
-                Text("Logout")
-                    .foregroundStyle(.white)
-                    .padding()
-                    .background(Color("goodPurple"))
-                    .cornerRadius(10)
-                    
-                    VStack(spacing: 20) {
-                        
-                       
-                        
-                        
-                        NavigationLink(destination: MyMoveRequestsView()) {
-                            ActionCard(
-                                icon: "list.bullet.clipboard.fill",title: "My Move Requests",color: .orange)
-                        }
-                        
-                        
-                        NavigationLink(destination: ChatView()) {
-                            ActionCard(icon: "message.fill",title: "Messages",color: .black)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        authManager.signOut()
-                    }) {
-                        HStack {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                            Text("Logout")
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.black)
-                        .cornerRadius(12)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
+            VStack(spacing: 20) {
+                NavigationLink(destination: AddressEntryView()) {
+                    ActionCard(icon: "location.fill",title: "Enter Address",color: .goodPurple)
+                }
+                
+                NavigationLink(destination: OrganizeMoveView()) {
+                    ActionCard(icon: "list.bullet.clipboard.fill",title: "Organize Moves",color: .orange)
+                }
+                
+                NavigationLink(destination: MoveRequestsView()) {
+                    ActionCard(icon: "house.fill",title: "My Move Requests",color: .orange)
+                }
+                
+                
+                NavigationLink(destination: ChatView()) {
+                    ActionCard(icon: "message.fill",title: "Messages",color: .black)
                 }
             }
-            .navigationBarHidden(true)
+            .padding(.horizontal, 20)
+            
+            Spacer()
+            
+            Button(action: {
+                authManager.signOut()
+            }) {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                    Text("Logout")
+                }
+                .foregroundColor(.white)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.black)
+                .cornerRadius(12)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 40)
         }
     }
+}
 
 
 struct ActionCard: View {
@@ -99,18 +90,6 @@ struct ActionCard: View {
         .padding(20)
         .background(Color.gray.opacity(0.1))
         .cornerRadius(16)
-    }
-}
-
-struct MyMoveRequestsView: View {
-    var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            Text("My Move Requests")
-                .foregroundColor(.black)
-        }
-        .navigationTitle("Move Requests")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

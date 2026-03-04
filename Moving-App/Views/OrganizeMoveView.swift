@@ -24,28 +24,36 @@ struct OrganizeMoveView: View {
     @State private var showValidationError = false
     @State private var errorMessage = ""
     
+    @EnvironmentObject var authManager: AuthManager
+    
+    init(
+            addressLine: String = "",
+            city: String = "",
+            province: String = "",
+            postalCode: String = "",
+            numberOfRooms: String = "",
+            numberOfFragileItems: String = "",
+            hasElevator: Bool = false,
+            floorLevel: String = "",
+            specialInstructions: String = ""
+        ) {
+            _addressLine = State(initialValue: addressLine)
+            _city = State(initialValue: city)
+            _province = State(initialValue: province)
+            _postalCode = State(initialValue: postalCode)
+
+            _numberOfRooms = State(initialValue: numberOfRooms)
+            _numberOfFragileItems = State(initialValue: numberOfFragileItems)
+            _hasElevator = State(initialValue: hasElevator)
+            _floorLevel = State(initialValue: floorLevel)
+            _specialInstructions = State(initialValue: specialInstructions)
+        }
+    
     var body: some View {
         ZStack {
-
             Color.white.ignoresSafeArea()
-            
             ScrollView {
                 VStack(spacing: 30) {
-
-                    VStack(spacing: 10) {
-                        Image(systemName: "doc.text.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(Color("goodPurple"))
-                            .padding(.top, 20)
-                        
-                        Text("Move Details")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.black)
-                
-                    }
-                    .padding(.bottom, 20)
-                    
-
                     if !addressLine.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
                             HStack {
@@ -55,7 +63,6 @@ struct OrganizeMoveView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.black)
                             }
-                            
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(addressLine)
                                 Text("\(city), \(province) \(postalCode)")
@@ -69,6 +76,20 @@ struct OrganizeMoveView: View {
                         }
                         .padding(.horizontal, 20)
                     }
+                    else {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text("Your Address has not been input. Please enter your Address before continuing with the move request.")
+                                .font(.system(size: 10))
+                                .foregroundColor(.red)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(10)
+                        .padding(.horizontal, 20)
+                    }
                     
 
                     VStack(spacing: 20) {
@@ -76,7 +97,6 @@ struct OrganizeMoveView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Number of Rooms")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.gray)
                             
                             TextField("Enter number of rooms", text: $numberOfRooms)
                                 .keyboardType(.numberPad)
@@ -88,7 +108,6 @@ struct OrganizeMoveView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Number of Fragile Items")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.gray)
                             
                             TextField("Enter number of fragile items", text: $numberOfFragileItems)
                                 .keyboardType(.numberPad)
@@ -101,7 +120,6 @@ struct OrganizeMoveView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Floor Level")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.gray)
                             
                             TextField("Enter your floor level", text: $floorLevel)
                                 .autocapitalization(.words)
@@ -134,7 +152,6 @@ struct OrganizeMoveView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Special Instructions (Optional)")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.gray)
                             
                             TextEditor(text: $specialInstructions)
                                 .frame(height: 100)
@@ -199,8 +216,25 @@ struct OrganizeMoveView: View {
                 specialInstructions: specialInstructions
             )
         }
+        .task {
+            if addressLine.isEmpty {
+                    if let addr = authManager.user?.address {
+                        // Use cached user if already loaded
+                        addressLine = addr.addressLine
+                        city = addr.city
+                        province = addr.province
+                        postalCode = addr.postalCode
+                    } else if let addr = await authManager.loadAddress() {
+                        // Fetch from Firestore
+                        addressLine = addr.addressLine
+                        city = addr.city
+                        province = addr.province
+                        postalCode = addr.postalCode
+                    }
+            }
+        }
     }
-    
+            
     func validateInputs() -> Bool {
         showValidationError = false
         errorMessage = ""
@@ -217,168 +251,13 @@ struct OrganizeMoveView: View {
             return false
         }
         
-        return true
-    }
-}
-
-
-struct MoveRequestConfirmationView: View {
-    @Environment(\.presentationMode) var presentationMode
-    
-    let addressLine: String
-    let city: String
-    let province: String
-    let postalCode: String
-    let numberOfRooms: String
-    let numberOfFragileItems: String
-    let floorLevel: String
-    let hasElevator: Bool
-    let specialInstructions: String
-    
-    @State private var showSuccess = false
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.white.ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 30) {
-                        if showSuccess {
-                            VStack(spacing: 20) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 80))
-                                    .foregroundColor(.green)
-                                
-                                Text("Request Sent!")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.black)
-                                
-                                Text("The admin will review your move request and contact you soon to discuss details and pricing.")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gray)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 40)
-                            }
-                            .padding(.top, 60)
-                        } else {
-                            VStack(spacing: 20) {
-                                Image(systemName: "doc.text.magnifyingglass")
-                                    .font(.system(size: 60))
-                                    .foregroundColor(Color("goodPurple"))
-                                    .padding(.top, 40)
-                                
-                                Text("Review Your Request")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.black)
-                                
-                                Text("Make sure everything is correct")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gray)
-                            }
-                            
-                           
-                            VStack(alignment: .leading, spacing: 15) {
-                               
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("Address")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.gray)
-                                    Text(addressLine)
-                                        .foregroundColor(.black)
-                                    Text("\(city), \(province) \(postalCode)")
-                                        .foregroundColor(.black)
-                                }
-                                
-                                Divider()
-                                
-                                DetailRow(label: "Number of Rooms", value: numberOfRooms)
-                                Divider()
-                                
-                                DetailRow(label: "Fragile Items", value: numberOfFragileItems.isEmpty ? "None" : numberOfFragileItems)
-                                Divider()
-                                
-                                DetailRow(label: "Floor Level", value: floorLevel)
-                                Divider()
-                                
-                                DetailRow(label: "Elevator Available", value: hasElevator ? "Yes" : "No")
-                                
-                                if !specialInstructions.isEmpty {
-                                    Divider()
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        Text("Special Instructions")
-                                            .font(.system(size: 14, weight: .semibold))
-                                            .foregroundColor(.gray)
-                                        Text(specialInstructions)
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.black)
-                                    }
-                                }
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(12)
-                            .padding(.horizontal, 20)
-                            
-                            HStack(spacing: 10) {
-                                Image(systemName: "info.circle.fill")
-                                    .foregroundColor(.blue)
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("What happens next?")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.black)
-                                    Text("Admin will review and contact you to discuss pricing and schedule.")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(10)
-                            .padding(.horizontal, 20)
-                            
-                            Button(action: {
-                                submitRequest()
-                            }) {
-                                Text("Confirm & Send Request")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color("goodPurple"))
-                                    .cornerRadius(12)
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        Spacer()
-                    }
-                }
-            }
-            .navigationTitle(showSuccess ? "Success" : "Confirm Request")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if !showSuccess {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
-                            presentationMode.wrappedValue.dismiss()
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    func submitRequest() {
-        // to improve later
-        withAnimation {
-            showSuccess = true
+        if addressLine.isEmpty || province.isEmpty || postalCode.isEmpty {
+            errorMessage = "Please enter your address completely before submitting a move request."
+            showValidationError = true
+            return false
         }
         
-      
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            presentationMode.wrappedValue.dismiss()
-        }
+        return true
     }
 }
 
@@ -396,11 +275,5 @@ struct DetailRow: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.black)
         }
-    }
-}
-
-#Preview {
-    NavigationView {
-        OrganizeMoveView()
     }
 }

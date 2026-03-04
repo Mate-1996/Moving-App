@@ -9,6 +9,8 @@ final class AuthManager: ObservableObject {
     @Published var user: UserModel?
     @Published var isLoading = false
     @Published var authError: String?
+    @Published var myMoveRequests: [MoveRequest] = []
+    @Published var moveRequestsError: String?
 
     private let db = Firestore.firestore()
 
@@ -90,6 +92,77 @@ final class AuthManager: ObservableObject {
         } catch {
             authError = error.localizedDescription
             user = nil
+        }
+    }
+    
+    //MARK: Address
+    
+    func saveAddress(_ address: Address) async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            authError = "No logged in user."
+            return
+        }
+
+        isLoading = true
+        authError = nil
+        defer { isLoading = false }
+
+        do {
+            // Update just the address field (won't overwrite the whole doc)
+            try await db.collection("users").document(uid).setData([
+                "address": [
+                    "addressLine": address.addressLine,
+                    "city": address.city,
+                    "province": address.province,
+                    "postalCode": address.postalCode
+                ]
+            ], merge: true)
+
+            // Update local @Published user too
+            if var current = user {
+                current.address = address
+                user = current
+            }
+        } catch {
+            authError = error.localizedDescription
+        }
+    }
+
+    func loadAddress() async -> Address? {
+        guard let uid = Auth.auth().currentUser?.uid else { return nil }
+
+        do {
+            let doc = try await db.collection("users").document(uid).getDocument()
+            let model = try doc.data(as: UserModel.self)
+            user = model
+            return model.address
+        } catch {
+            // Don’t force-error on first-time users with no address
+            return nil
+        }
+    }
+    
+    func fetchMoveRequests() async {
+        moveRequestsError = nil
+        guard let uid = Auth.auth().currentUser?.uid else {
+            myMoveRequests = []
+            moveRequestsError = "No logged in user."
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let snap = try await db.collection("moveRequests")
+                .whereField("userId", isEqualTo: uid)
+                .getDocuments()
+
+            myMoveRequests = try snap.documents.map { try $0.data(as: MoveRequest.self) }
+
+        } catch {
+            moveRequestsError = error.localizedDescription
+            myMoveRequests = []
         }
     }
 }

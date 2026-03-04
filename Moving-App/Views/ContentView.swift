@@ -16,7 +16,12 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             if authManager.user != nil {
-                UserView()
+                if authManager.user?.role == .admin {
+                    AdminView()
+                }
+                else {
+                    UserView()
+                }
             }else {
                 RegisterView()
             }

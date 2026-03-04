@@ -7,7 +7,13 @@
 
 import SwiftUI
 
+
+
 struct AddressEntryView: View {
+    
+    @EnvironmentObject var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var addressLine = ""
     @State private var city = ""
     @State private var province = ""
@@ -135,6 +141,14 @@ struct AddressEntryView: View {
                 postalCode: postalCode
             )
         }
+        .task {
+            if let addr = await authManager.loadAddress() {
+                    addressLine = addr.addressLine
+                    city = addr.city
+                    province = addr.province
+                    postalCode = addr.postalCode
+                }
+        }
     }
     
     func validateAndContinue() {
@@ -166,7 +180,23 @@ struct AddressEntryView: View {
         }
         
         
-        navigateToOrganizeMove = true
+        let addr = Address(
+                addressLine: addressLine,
+                city: city,
+                province: province,
+                postalCode: postalCode
+            )
+
+        Task {
+            await authManager.saveAddress(addr)
+            
+            if let msg = authManager.authError {
+                errorMessage = msg
+                showValidationError = true
+            } else {
+                dismiss()
+            }
+        }
     }
 }
 
