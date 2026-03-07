@@ -26,27 +26,27 @@ struct AdminView: View {
                     VStack(spacing: 16) {
                         
                         AdminActionCard(
-                            icon: "person.3.fill",
+                            systemIcon: "person.3.fill",
                             title: "See All Users",
-                            description: "View and manage all registered users"
+                            subtitle: "View and manage all registered users"
                         )
                         
                         AdminActionCard(
-                            icon: "person.badge.plus.fill",
+                            systemIcon: "person.badge.plus.fill",
                             title: "Add Mover Account",
-                            description: "Create a new mover account for the platform"
+                            subtitle: "Create a new mover account for the platform"
                         )
                         
                         AdminActionCard(
-                            icon: "person.crop.circle.badge.plus",
+                            systemIcon: "person.crop.circle.badge.plus",
                             title: "Add Another Admin",
-                            description: "Grant admin privileges to a new account"
+                            subtitle: "Grant admin privileges to a new account"
                         )
                         
                         AdminActionCard(
-                            icon: "truck.box.fill",
+                            systemIcon: "truck.box.fill",
                             title: "See All Current Moves",
-                            description: "View and manage all move requests"
+                            subtitle: "View and manage all move requests"
                         )
                         
                     }
@@ -74,46 +74,6 @@ struct AdminView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
             }
-        }
-    }
-}
-
-struct AdminActionCard: View {
-    let icon: String
-    let title: String
-    let description: String
-    
-    var body: some View {
-        Button(action: {
-            // Navigation handled later
-        }) {
-            HStack(spacing: 16) {
-                
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(.white)
-                    .frame(width: 50, height: 50)
-                    .background(Color("goodPurple"))
-                    .cornerRadius(12)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.black)
-                    
-                    Text(description)
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
-            }
-            .padding()
-            .background(Color.gray.opacity(0.08))
-            .cornerRadius(14)
         }
     }
 }
