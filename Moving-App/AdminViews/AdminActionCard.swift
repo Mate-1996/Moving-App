@@ -13,9 +13,6 @@ struct AdminActionCard: View {
     let subtitle: String
     
     var body: some View {
-            Button(action: {
-                // Navigation handled later
-            }) {
                 HStack(spacing: 16) {
                     
                     Image(systemName: systemIcon)
@@ -41,9 +38,8 @@ struct AdminActionCard: View {
                         .foregroundColor(.gray)
                 }
                 .padding()
-                .background(Color.gray.opacity(0.08))
+                .background(Color.gray.opacity(0.2))
                 .cornerRadius(14)
-            }
     }
 }
 
