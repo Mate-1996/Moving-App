@@ -14,8 +14,16 @@ struct LoginView: View {
     @EnvironmentObject var authManager: AuthManager
     @State private var errorMessage: String?
     
+    @Environment(\.presentationMode) var presentationMode
+    
     var body: some View {
         VStack {
+            Text("Login")
+                .font(.largeTitle)
+                .bold()
+                .foregroundStyle(.goodPurple)
+                .padding(.bottom, 50)
+            
             TextField("Enter Email", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textInputAutocapitalization(.none)
@@ -29,23 +37,44 @@ struct LoginView: View {
                     .font(.caption)
             }
             
-            Button("Login") {
-                Task {
-                        await authManager.signIn(email: email, password: password)
-
-                        if let msg = authManager.authError {
-                            self.errorMessage = msg
-                        } else {
-                            print("Login Successful")
-                        }
-                    }            }
-            
-            NavigationLink(destination: RegisterView()) {
-                Text("Register here!")
+            Button(action: loginUser) {
+                Text("Login")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.goodPurple)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
             }
+            Spacer()
+            Divider()
+            
+            Button("Back to Register") {
+                presentationMode.wrappedValue.dismiss()
+            }
+            .font(.subheadline)
         }.padding()
     }
+    
+    private func loginUser() {
+        guard !email.isEmpty, !password.isEmpty else {
+            errorMessage = "Please fill out all fields."
+            return
+        }
+        
+        Task {
+                await authManager.signIn(email: email, password: password)
+
+                if let msg = authManager.authError {
+                    self.errorMessage = msg
+                } else {
+                    print("Login Successful")
+                }
+            }
+
+    }
 }
+
+
 
 #Preview {
     LoginView()

@@ -14,10 +14,18 @@ struct UserModel: Codable, Identifiable {
     var isActive: Bool
     @DocumentID var id: String?
     var role: UserRole
+    var address: Address?
+}
+
+struct Address: Codable {
+    var addressLine: String
+    var city: String
+    var province: String
+    var postalCode: String
 }
 
 enum UserRole: String, Codable, CaseIterable {
-    case regular
-    case mover
-    case admin
+    case regular = "Regular"
+    case mover = "Mover"
+    case admin = "Admin"
 }

@@ -36,14 +36,6 @@ struct RegisterView: View {
             SecureField("Enter Password", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             
-
-            Picker("Role: ", selection: $selectedRole) {
-                ForEach(UserRole.allCases, id: \.self) { role in
-                    Text(role.rawValue).tag(role)
-                }
-            }
-            .pickerStyle(.menu)
-            
             if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
@@ -59,10 +51,19 @@ struct RegisterView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
             }
+            
+            Text("Already have an account?")
+                .font(.footnote)
+                .padding(.top, 10)
+                .foregroundStyle(.gray)
 
             NavigationLink(destination: LoginView()) {
-                Text("Already have an account? Login here.")
-                    .font(.footnote)
+                    Text("Login")
+                        .frame(maxWidth: 90)
+                        .padding(5)
+                        .background(Color.goodPurple)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
             }
         }
         .padding()
