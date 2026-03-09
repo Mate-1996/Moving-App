@@ -11,6 +11,8 @@ final class AuthManager: ObservableObject {
     @Published var authError: String?
     @Published var myMoveRequests: [MoveRequest] = []
     @Published var moveRequestsError: String?
+    @Published var allUsers: [UserModel] = []
+    @Published var allUsersError: String?
 
     private let db = Firestore.firestore()
 
@@ -63,6 +65,7 @@ final class AuthManager: ObservableObject {
     func signOut() {
         do {
             try Auth.auth().signOut()
+            user?.isActive = false
             user = nil
         } catch {
             authError = error.localizedDescription
@@ -92,6 +95,20 @@ final class AuthManager: ObservableObject {
         } catch {
             authError = error.localizedDescription
             user = nil
+        }
+    }
+    
+    func fetchAllUsers() async {
+        allUsersError = nil
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let snapshot = try await db.collection("users").getDocuments()
+            allUsers = try snapshot.documents.map { try $0.data(as: UserModel.self) }
+        } catch {
+            allUsersError = error.localizedDescription
+            allUsers = []
         }
     }
     
