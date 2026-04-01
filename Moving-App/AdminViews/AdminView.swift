@@ -1,28 +1,26 @@
+
 import SwiftUI
 
 struct AdminView: View {
     @EnvironmentObject var authManager: AuthManager
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.white.ignoresSafeArea()
-                
-                VStack(spacing: 5){
-                    // Header
+
+                VStack(spacing: 5) {
                     VStack(spacing: 10) {
                         Text("Hello, \(authManager.user?.displayName ?? "User")")
                             .font(.largeTitle)
                             .bold()
-                        
+
                         Text("Manage users, movers, and move requests")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }
                     .padding(.top, 20)
-                    
-                    // Admin tools
-                    
+
                     VStack(spacing: 16) {
                         NavigationLink(destination: UsersListView()) {
                             AdminActionCard(
@@ -32,7 +30,7 @@ struct AdminView: View {
                             )
                         }
                         .buttonStyle(.plain)
-                        
+
                         NavigationLink(destination: AllMovesView()) {
                             AdminActionCard(
                                 systemIcon: "truck.box.fill",
@@ -41,7 +39,7 @@ struct AdminView: View {
                             )
                         }
                         .buttonStyle(.plain)
-                        
+
                         NavigationLink(destination: AddMoversView()) {
                             AdminActionCard(
                                 systemIcon: "person.badge.plus.fill",
@@ -50,7 +48,7 @@ struct AdminView: View {
                             )
                         }
                         .buttonStyle(.plain)
-                        
+
                         NavigationLink(destination: AddAdminView()) {
                             AdminActionCard(
                                 systemIcon: "person.crop.circle.badge.plus",
@@ -59,15 +57,21 @@ struct AdminView: View {
                             )
                         }
                         .buttonStyle(.plain)
+
+                        NavigationLink(destination: ChatListView()) {
+                            AdminActionCard(
+                                systemIcon: "bubble.left.and.bubble.right.fill",
+                                title: "Messages",
+                                subtitle: "View all active move group chats"
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 20)
-                    
+
                     Spacer()
-                    
-                    // Logout Button
-                    Button(action: {
-                        authManager.signOut()
-                    }) {
+
+                    Button(action: { authManager.signOut() }) {
                         HStack {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
                             Text("Logout")
@@ -89,4 +93,5 @@ struct AdminView: View {
 
 #Preview {
     AdminView()
+        .environmentObject(AuthManager())
 }

@@ -17,43 +17,59 @@ struct LoginView: View {
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
-        VStack {
-            Text("Login")
-                .font(.largeTitle)
-                .bold()
-                .foregroundStyle(.goodPurple)
-                .padding(.bottom, 50)
+    
+        ZStack {
             
-            TextField("Enter Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .textInputAutocapitalization(.none)
+            LinearGradient(
+                gradient: Gradient(colors: [.purple, .blue, .orange]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
-            SecureField("Enter Password", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            if let errorMessage = errorMessage {
-                Text(errorMessage)
-                    .foregroundStyle(.red)
-                    .font(.caption)
-            }
-            
-            Button(action: loginUser) {
+            VStack {
                 Text("Login")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.goodPurple)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-            Spacer()
-            Divider()
-            
-            Button("Back to Register") {
-                presentationMode.wrappedValue.dismiss()
-            }
-            .font(.subheadline)
-        }.padding()
-    }
+                    .font(.largeTitle)
+                    .bold()
+                    .foregroundStyle(.goodPurple)
+                    .padding(.bottom, 50)
+                
+                TextField("Enter Email", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                
+                SecureField("Enter Password", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                        .font(.caption)
+                }
+                
+                Button(action: loginUser) {
+                    Text("Login")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.goodPurple)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                Spacer()
+                Divider()
+                
+                Button("Back to Register") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .font(.subheadline)
+            }.padding()
+        }
+        
+        
+        }
+    
+        
     
     private func loginUser() {
         guard !email.isEmpty, !password.isEmpty else {

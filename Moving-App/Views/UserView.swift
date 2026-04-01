@@ -10,40 +10,38 @@ import FirebaseAuth
 
 struct UserView: View {
     @EnvironmentObject var authManager: AuthManager
+
     var body: some View {
         VStack {
             Text("Welcome \(authManager.user?.displayName ?? "User")")
                 .font(.title)
                 .multilineTextAlignment(.center)
                 .padding()
-            
+
             Text("Your user role is: \(authManager.user?.role.rawValue ?? "Unknown")")
-            
+
             VStack(spacing: 20) {
                 NavigationLink(destination: AddressEntryView()) {
-                    ActionCard(icon: "location.fill",title: "Enter Address",color: .goodPurple)
+                    ActionCard(icon: "location.fill", title: "Enter Address", color: .goodPurple)
                 }
-                
+
                 NavigationLink(destination: OrganizeMoveView()) {
-                    ActionCard(icon: "list.bullet.clipboard.fill",title: "Organize Moves",color: .orange)
+                    ActionCard(icon: "list.bullet.clipboard.fill", title: "Organize Moves", color: .orange)
                 }
-                
+
                 NavigationLink(destination: MoveRequestsView()) {
-                    ActionCard(icon: "house.fill",title: "My Move Requests",color: .orange)
+                    ActionCard(icon: "house.fill", title: "My Move Requests", color: .orange)
                 }
-                
-                
-                NavigationLink(destination: ChatView()) {
-                    ActionCard(icon: "message.fill",title: "Messages",color: .black)
+
+                NavigationLink(destination: ChatListView()) {
+                    ActionCard(icon: "message.fill", title: "Messages", color: .black)
                 }
             }
             .padding(.horizontal, 20)
-            
+
             Spacer()
-            
-            Button(action: {
-                authManager.signOut()
-            }) {
+
+            Button(action: { authManager.signOut() }) {
                 HStack {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
                     Text("Logout")
@@ -60,29 +58,26 @@ struct UserView: View {
     }
 }
 
-
 struct ActionCard: View {
     let icon: String
     let title: String
     let color: Color
-    
+
     var body: some View {
         HStack(spacing: 15) {
-            
             Image(systemName: icon)
                 .font(.system(size: 28))
                 .foregroundColor(color)
                 .frame(width: 50)
-            
+
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.black)
-                
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.gray)
@@ -91,20 +86,4 @@ struct ActionCard: View {
         .background(Color.gray.opacity(0.1))
         .cornerRadius(16)
     }
-}
-
-struct ChatView: View {
-    var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            Text("Messages")
-                .foregroundColor(.black)
-        }
-        .navigationTitle("Messages")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-#Preview {
-    UserView()
 }

@@ -11,11 +11,10 @@ struct AddAdminView: View {
     @State private var email: String = ""
     @State private var displayName: String = ""
     @State private var password: String = ""
-    @State private var role: UserRole = .admin
     @State private var errorMessage: String?
     @State private var showSuccessToast = false
     @EnvironmentObject var authManager: AuthManager
-    
+
     var body: some View {
         ZStack {
             VStack(spacing: 10) {
@@ -23,35 +22,50 @@ struct AddAdminView: View {
                     .font(.largeTitle)
                     .padding(.bottom, 40)
                     .bold()
-                
+
                 Text("Email:")
                     .fontWeight(.semibold)
                     .foregroundStyle(Color(.gray))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                
+                
                 TextField("Enter Email", text: $email)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .textInputAutocapitalization(.none)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
                     .padding(.bottom)
-                
+
                 Text("Display Name:")
                     .fontWeight(.semibold)
                     .foregroundStyle(Color(.gray))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                
+                
                 TextField("Enter Display Name", text: $displayName)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .textInputAutocapitalization(.none)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled(true)
                     .padding(.bottom)
-                
+
                 Text("Password:")
                     .fontWeight(.semibold)
                     .foregroundStyle(Color(.gray))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                
+                
                 SecureField("Enter Password", text: $password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.bottom)
-                
+
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                }
+
                 Spacer()
-                
+
                 Button(action: signUpUser) {
                     Text("Create Admin")
                         .frame(maxWidth: .infinity)
@@ -65,15 +79,13 @@ struct AddAdminView: View {
                 .padding(.bottom, 20)
             }
             .padding(.horizontal, 30)
-            
+
             if showSuccessToast {
                 VStack {
                     Spacer()
-                    
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.white)
-                        
                         Text("Admin account created")
                             .foregroundColor(.white)
                             .bold()
@@ -89,27 +101,31 @@ struct AddAdminView: View {
             }
         }
     }
-    
+
     private func signUpUser() {
         guard !email.isEmpty, !password.isEmpty, !displayName.isEmpty else {
             errorMessage = "Please fill out all fields."
             return
         }
-        
+
         Task {
-            await authManager.signUp(email: email, password: password, displayName: displayName, role: role)
+            await authManager.signUp(
+                email: email,
+                password: password,
+                displayName: displayName,
+                role: .admin
+            )
+
             if let msg = authManager.authError {
-                self.errorMessage = msg
-            } else { //shows a lil toast
+                errorMessage = msg
+            } else {
                 errorMessage = nil
-                withAnimation {
-                    showSuccessToast = true
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { //hides toast
-                    withAnimation{
-                        showSuccessToast = false
-                    }
+                email = ""
+                displayName = ""
+                password = ""
+                withAnimation { showSuccessToast = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation { showSuccessToast = false }
                 }
             }
         }
@@ -118,4 +134,5 @@ struct AddAdminView: View {
 
 #Preview {
     AddAdminView()
+        .environmentObject(AuthManager())
 }

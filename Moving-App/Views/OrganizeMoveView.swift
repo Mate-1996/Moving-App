@@ -8,61 +8,58 @@
 import SwiftUI
 
 struct OrganizeMoveView: View {
-    
+
     @State var addressLine: String = ""
     @State var city: String = ""
     @State var province: String = ""
     @State var postalCode: String = ""
-    
+
+    @State private var destAddressLine = ""
+    @State private var destCity = ""
+    @State private var destProvince = ""
+    @State private var destPostalCode = ""
+
     @State private var numberOfRooms = ""
     @State private var numberOfFragileItems = ""
     @State private var hasElevator = false
     @State private var floorLevel = ""
     @State private var specialInstructions = ""
-    
+
+    @State private var showPickupMapPicker = false
+    @State private var showDestinationMapPicker = false
     @State private var showConfirmation = false
     @State private var showValidationError = false
     @State private var errorMessage = ""
-    
-    @EnvironmentObject var authManager: AuthManager
-    
-    init(
-            addressLine: String = "",
-            city: String = "",
-            province: String = "",
-            postalCode: String = "",
-            numberOfRooms: String = "",
-            numberOfFragileItems: String = "",
-            hasElevator: Bool = false,
-            floorLevel: String = "",
-            specialInstructions: String = ""
-        ) {
-            _addressLine = State(initialValue: addressLine)
-            _city = State(initialValue: city)
-            _province = State(initialValue: province)
-            _postalCode = State(initialValue: postalCode)
 
-            _numberOfRooms = State(initialValue: numberOfRooms)
-            _numberOfFragileItems = State(initialValue: numberOfFragileItems)
-            _hasElevator = State(initialValue: hasElevator)
-            _floorLevel = State(initialValue: floorLevel)
-            _specialInstructions = State(initialValue: specialInstructions)
-        }
-    
+    @EnvironmentObject var authManager: AuthManager
+
+    init(
+        addressLine: String = "",
+        city: String = "",
+        province: String = "",
+        postalCode:  String = ""
+    ) {
+        _addressLine = State(initialValue: addressLine)
+        _city = State(initialValue: city)
+        _province = State(initialValue: province)
+        _postalCode = State(initialValue: postalCode)
+    }
+
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 30) {
-                    if !addressLine.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Image(systemName: "location.fill")
-                                    .foregroundColor(Color("goodPurple"))
-                                Text("Moving From")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.black)
-                            }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Image(systemName: "location.fill")
+                                .foregroundColor(Color("goodPurple"))
+                            Text("Moving From")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+
+                        if !addressLine.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(addressLine)
                                 Text("\(city), \(province) \(postalCode)")
@@ -73,74 +70,116 @@ struct OrganizeMoveView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(10)
+                        } else {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                Text("No pickup address set.")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.red)
+                            }
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(10)
                         }
-                        .padding(.horizontal, 20)
+
+                        Button(action: { showPickupMapPicker = true }) {
+                            HStack {
+                                Image(systemName: "map.fill")
+                                Text("Change on map")
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundColor(Color("goodPurple"))
+                            .font(.system(size: 14))
+                        }
                     }
-                    else {
+                    .padding(.horizontal, 20)
+
+                    VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
-                            Text("Your Address has not been input. Please enter your Address before continuing with the move request.")
-                                .font(.system(size: 10))
-                                .foregroundColor(.red)
-                                .multilineTextAlignment(.leading)
+                            Image(systemName: "mappin.and.ellipse")
+                                .foregroundColor(.orange)
+                            Text("Moving To")
+                                .font(.system(size: 16, weight: .semibold))
                         }
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(10)
-                        .padding(.horizontal, 20)
+
+                        if !destAddressLine.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(destAddressLine)
+                                Text("\(destCity), \(destProvince) \(destPostalCode)")
+                            }
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                        } else {
+                            Text("No destination selected yet.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(10)
+                        }
+
+                        Button(action: { showDestinationMapPicker = true }) {
+                            HStack {
+                                Image(systemName: "map.fill")
+                                Text(destAddressLine.isEmpty ? "Pick destination on map" : "Change on map")
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                            .font(.system(size: 14))
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.orange)
+                            .cornerRadius(12)
+                        }
                     }
-                    
+                    .padding(.horizontal, 20)
 
                     VStack(spacing: 20) {
-
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Number of Rooms")
                                 .font(.system(size: 14, weight: .semibold))
-                            
                             TextField("Enter number of rooms", text: $numberOfRooms)
                                 .keyboardType(.numberPad)
                                 .padding()
                                 .background(Color.gray.opacity(0.1))
                                 .cornerRadius(12)
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Number of Fragile Items")
                                 .font(.system(size: 14, weight: .semibold))
-                            
                             TextField("Enter number of fragile items", text: $numberOfFragileItems)
                                 .keyboardType(.numberPad)
                                 .padding()
                                 .background(Color.gray.opacity(0.1))
                                 .cornerRadius(12)
                         }
-                        
 
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Floor Level")
                                 .font(.system(size: 14, weight: .semibold))
-                            
                             TextField("Enter your floor level", text: $floorLevel)
-                                .autocapitalization(.words)
+                                .keyboardType(.numberPad)
                                 .padding()
                                 .background(Color.gray.opacity(0.1))
                                 .cornerRadius(12)
                         }
-                        
 
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Elevator Available")
                                     .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.black)
                                 Text("Is there an elevator?")
                                     .font(.system(size: 12))
                                     .foregroundColor(.gray)
                             }
-                            
                             Spacer()
-                            
                             Toggle("", isOn: $hasElevator)
                                 .labelsHidden()
                                 .tint(Color("goodPurple"))
@@ -148,24 +187,21 @@ struct OrganizeMoveView: View {
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(12)
-                        
+
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Special Instructions (Optional)")
                                 .font(.system(size: 14, weight: .semibold))
-                            
                             TextEditor(text: $specialInstructions)
                                 .frame(height: 100)
                                 .padding(8)
                                 .background(Color.gray.opacity(0.1))
                                 .cornerRadius(12)
-                            
-                            Text("Add any additional details here ")
+                            Text("Add any additional details here")
                                 .font(.system(size: 12))
                                 .foregroundColor(.gray)
                         }
                     }
                     .padding(.horizontal, 20)
-                    
 
                     if showValidationError {
                         HStack {
@@ -180,11 +216,9 @@ struct OrganizeMoveView: View {
                         .cornerRadius(10)
                         .padding(.horizontal, 20)
                     }
-                    
+
                     Button(action: {
-                        if validateInputs() {
-                            showConfirmation = true
-                        }
+                        if validateInputs() { showConfirmation = true }
                     }) {
                         Text("Submit Move Request")
                             .font(.system(size: 18, weight: .semibold))
@@ -196,19 +230,45 @@ struct OrganizeMoveView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
-                    
+
                     Spacer(minLength: 30)
                 }
             }
         }
         .navigationTitle("Move Details")
         .navigationBarTitleDisplayMode(.inline)
+        
+        .sheet(isPresented: $showPickupMapPicker) {
+            MapPickerView { address in
+                addressLine = address.addressLine
+                city = address.city
+                province = address.province
+                postalCode = address.postalCode
+            }
+        }
+       
+        .sheet(isPresented: $showDestinationMapPicker) {
+            MapPickerView { address in
+                destAddressLine = address.addressLine
+                destCity = address.city
+                destProvince = address.province
+                destPostalCode = address.postalCode
+            }
+        }
         .sheet(isPresented: $showConfirmation) {
             MoveRequestConfirmationView(
-                addressLine: addressLine,
-                city: city,
-                province: province,
-                postalCode: postalCode,
+                pickupAddress: Address(
+                    addressLine: addressLine,
+                    city: city,
+                    province: province,
+                    postalCode: postalCode
+                ),
+                destinationAddress: Address(
+                    addressLine: destAddressLine,
+                    city: destCity,
+                    province: destProvince,
+                    postalCode: destPostalCode
+                ),
                 numberOfRooms: numberOfRooms,
                 numberOfFragileItems: numberOfFragileItems,
                 floorLevel: floorLevel,
@@ -218,45 +278,41 @@ struct OrganizeMoveView: View {
         }
         .task {
             if addressLine.isEmpty {
-                    if let addr = authManager.user?.address {
-                        // Use cached user if already loaded
-                        addressLine = addr.addressLine
-                        city = addr.city
-                        province = addr.province
-                        postalCode = addr.postalCode
-                    } else if let addr = await authManager.loadAddress() {
-                        // Fetch from Firestore
-                        addressLine = addr.addressLine
-                        city = addr.city
-                        province = addr.province
-                        postalCode = addr.postalCode
-                    }
+                if let addr = authManager.user?.address {
+                    addressLine = addr.addressLine
+                    city = addr.city
+                    province = addr.province
+                    postalCode = addr.postalCode
+                } else if let addr = await authManager.loadAddress() {
+                    addressLine = addr.addressLine
+                    city = addr.city
+                    province = addr.province
+                    postalCode = addr.postalCode
+                }
             }
         }
     }
-            
+
     func validateInputs() -> Bool {
         showValidationError = false
         errorMessage = ""
-        
+
         if numberOfRooms.isEmpty {
             errorMessage = "Please enter the number of rooms"
-            showValidationError = true
-            return false
+            showValidationError = true; return false
         }
-        
         if floorLevel.isEmpty {
             errorMessage = "Please enter the floor level"
-            showValidationError = true
-            return false
+            showValidationError = true; return false
         }
-        
         if addressLine.isEmpty || province.isEmpty || postalCode.isEmpty {
-            errorMessage = "Please enter your address completely before submitting a move request."
-            showValidationError = true
-            return false
+            errorMessage = "Please enter your pickup address before submitting."
+            showValidationError = true; return false
         }
-        
+        if destAddressLine.isEmpty {
+            errorMessage = "Please select a destination address on the map."
+            showValidationError = true; return false
+        }
         return true
     }
 }
@@ -264,7 +320,7 @@ struct OrganizeMoveView: View {
 struct DetailRow: View {
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Text(label)

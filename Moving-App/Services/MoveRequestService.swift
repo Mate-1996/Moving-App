@@ -9,11 +9,14 @@ import Foundation
 import FirebaseAuth
 import FirebaseFirestore
 
-final class MoveRequestService {
+class MoveRequestService {
     private let db = Firestore.firestore()
+    private let chatService = ChatService()
+
 
     func createMoveRequest(
         pickupAddress: Address,
+        destinationAddress: Address,
         numberOfRooms: Int,
         numberOfFragileItems: Int,
         floorLevel: Int,
@@ -29,6 +32,7 @@ final class MoveRequestService {
         let request = MoveRequest(
             userId: uid,
             pickupAddress: pickupAddress,
+            destinationAddress: destinationAddress,
             numberOfRooms: numberOfRooms,
             numberOfFragileItems: numberOfFragileItems,
             floorLevel: floorLevel,
@@ -40,5 +44,29 @@ final class MoveRequestService {
 
         let ref = try db.collection("moveRequests").addDocument(from: request)
         return ref.documentID
+    }
+
+
+    func acceptRequest(id: String) async throws {
+        try await db.collection("moveRequests").document(id)
+            .updateData(["status": MoveRequestStatus.accepted.rawValue])
+    }
+
+
+    func assignMover(requestId: String, moverId: String, adminId: String) async throws {
+        let ref = db.collection("moveRequests").document(requestId)
+        try await ref.updateData(["moverId": moverId])
+
+        let doc = try await ref.getDocument()
+        guard let request = try? doc.data(as: MoveRequest.self) else { return }
+
+        if request.status == .accepted {
+            try await chatService.createChat(
+                requestId: requestId,
+                userId: request.userId,
+                moverId: moverId,
+                adminId: adminId
+            )
+        }
     }
 }

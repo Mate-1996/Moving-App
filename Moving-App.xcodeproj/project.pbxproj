@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6C00A1B92F5FA87000E82BEC /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C00A1B82F5FA87000E82BEC /* MapKit.framework */; };
 		6C7845D22F3A632100FBD74A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6C7845D12F3A632100FBD74A /* FirebaseCore */; };
 		6C7845D42F3A632900FBD74A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6C7845D32F3A632900FBD74A /* FirebaseAuth */; };
 		6C7845D62F3A633400FBD74A /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 6C7845D52F3A633400FBD74A /* FirebaseDatabase */; };
@@ -14,6 +15,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6C00A1B82F5FA87000E82BEC /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		6C7733F22F366A2300D71F74 /* Moving-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Moving-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -32,6 +34,7 @@
 			files = (
 				6C7845D62F3A633400FBD74A /* FirebaseDatabase in Frameworks */,
 				6C7845D82F3A635200FBD74A /* FirebaseFirestoreCombine-Community in Frameworks */,
+				6C00A1B92F5FA87000E82BEC /* MapKit.framework in Frameworks */,
 				6C7845D22F3A632100FBD74A /* FirebaseCore in Frameworks */,
 				6C7845D42F3A632900FBD74A /* FirebaseAuth in Frameworks */,
 			);
@@ -60,6 +63,7 @@
 		6C7845D02F3A632100FBD74A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6C00A1B82F5FA87000E82BEC /* MapKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -284,6 +288,7 @@
 				DEVELOPMENT_TEAM = J3C463623K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -316,6 +321,7 @@
 				DEVELOPMENT_TEAM = J3C463623K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

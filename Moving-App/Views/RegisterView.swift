@@ -7,71 +7,151 @@
 
 import SwiftUI
 
+struct LiquidGlassFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(.ultraThinMaterial)
+
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.20),
+                                    Color.white.opacity(0.04)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.30), lineWidth: 1)
+                }
+            }
+            .foregroundColor(.white)
+            .font(.system(size: 15, design: .rounded))
+            .tint(.white)
+    }
+}
+
 struct RegisterView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var displayName = ""
     @State private var errorMessage: String?
-    
+
     @EnvironmentObject var authManager: AuthManager
     @State private var selectedRole: UserRole = .regular
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Create Account")
-                .font(.title)
-                .bold()
-                .padding(.bottom, 8)
-            
-            TextField("Enter Display Name", text: $displayName)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.words)
-            
-            TextField("Enter Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .textInputAutocapitalization(.none)
-                .keyboardType(.emailAddress)
-            
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [.purple, .blue, .orange]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            SecureField("Enter Password", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            if let errorMessage = errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .multilineTextAlignment(.center)
-            }
-
-            Button(action: registerUser) {
-                Text("Register")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
+            VStack(spacing: 16) {
+                Text("Movex")
+                    .font(.system(size: 36, weight: .black, design: .rounded))
                     .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-            
-            Text("Already have an account?")
-                .font(.footnote)
-                .padding(.top, 10)
-                .foregroundStyle(.gray)
+                    .padding(.bottom, 4)
 
-            NavigationLink(destination: LoginView()) {
-                    Text("Login")
-                        .frame(maxWidth: 90)
-                        .padding(5)
-                        .background(Color.goodPurple)
+                Text("Create Account")
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.75))
+                    .padding(.bottom, 12)
+
+                TextField("Display Name", text: $displayName)
+                    .autocapitalization(.words)
+                    .autocorrectionDisabled(true)
+
+                TextField("Email", text: $email)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.emailAddress)
+                    .autocorrectionDisabled(true)
+
+                SecureField("Password", text: $password)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.white.opacity(0.85))
+                        .font(.system(size: 13, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .transition(.opacity)
+                }
+
+               
+                Button(action: registerUser) {
+                    Text("Register")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
-                        .cornerRadius(8)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(0.28),
+                                                Color.white.opacity(0.06)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.40), lineWidth: 1)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
+
+                Text("Already have an account?")
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundColor(.white.opacity(0.55))
+                    .padding(.top, 12)
+
+                NavigationLink(destination: LoginView()) {
+                    Text("Sign In")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 28)
+                        .padding(.vertical, 9)
+                        .background {
+                            ZStack {
+                                Capsule()
+                                    .fill(.ultraThinMaterial)
+                                Capsule()
+                                    .fill(Color.white.opacity(0.12))
+                                Capsule()
+                                    .strokeBorder(Color.white.opacity(0.30), lineWidth: 1)
+                            }
+                        }
+                }
             }
+            .padding(.horizontal, 28)
         }
-        .padding()
+        .preferredColorScheme(.dark)
     }
 
     private func registerUser() {
         guard !email.isEmpty, !password.isEmpty, !displayName.isEmpty else {
-            errorMessage = "Please fill out all fields."
+            withAnimation { errorMessage = "Please fill out all fields." }
             return
         }
 
@@ -84,7 +164,7 @@ struct RegisterView: View {
             )
 
             if let msg = authManager.authError {
-                errorMessage = msg
+                withAnimation { errorMessage = msg }
             } else {
                 print("registration success")
                 errorMessage = nil

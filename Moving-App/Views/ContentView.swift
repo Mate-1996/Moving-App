@@ -9,20 +9,20 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var authManager: AuthManager
-    
-    
+
     var body: some View {
         NavigationView {
-            if authManager.user != nil {
-                if authManager.user?.role == .admin {
+            if let user = authManager.user {
+                switch user.role {
+                case .admin:
                     AdminView()
-                }
-                else {
+                case .mover:
+                    MoverPage()
+                case .regular:
                     UserView()
                 }
-            }else {
+            } else {
                 RegisterView()
             }
         }

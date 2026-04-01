@@ -1,3 +1,10 @@
+//
+//  AuthManager.swift
+//  Moving-App
+//
+//  Created by Mate Chachkhiani on 2026-03-28.
+//
+
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
@@ -9,12 +16,17 @@ final class AuthManager: ObservableObject {
     @Published var user: UserModel?
     @Published var isLoading = false
     @Published var authError: String?
+
     @Published var myMoveRequests: [MoveRequest] = []
+    @Published var allMoveRequests: [MoveRequest] = []
     @Published var moveRequestsError: String?
+
     @Published var allUsers: [UserModel] = []
     @Published var allUsersError: String?
+    @Published var allMovers: [UserModel] = []
 
     private let db = Firestore.firestore()
+
 
     func bootstrap() async {
         guard let current = Auth.auth().currentUser else {
@@ -23,6 +35,7 @@ final class AuthManager: ObservableObject {
         }
         await loadUserProfile(uid: current.uid, emailFallback: current.email)
     }
+
 
     func signUp(email: String, password: String, displayName: String, role: UserRole) async {
         isLoading = true
@@ -42,7 +55,10 @@ final class AuthManager: ObservableObject {
             )
 
             try db.collection("users").document(uid).setData(from: profile, merge: true)
-            user = profile
+
+            if role == .regular {
+                user = profile
+            }
         } catch {
             authError = error.localizedDescription
         }
@@ -55,8 +71,7 @@ final class AuthManager: ObservableObject {
 
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
-            let uid = result.user.uid
-            await loadUserProfile(uid: uid, emailFallback: email)
+            await loadUserProfile(uid: result.user.uid, emailFallback: email)
         } catch {
             authError = error.localizedDescription
         }
@@ -65,8 +80,11 @@ final class AuthManager: ObservableObject {
     func signOut() {
         do {
             try Auth.auth().signOut()
-            user?.isActive = false
             user = nil
+            myMoveRequests  = []
+            allMoveRequests = []
+            allUsers  = []
+            allMovers = []
         } catch {
             authError = error.localizedDescription
         }
@@ -88,7 +106,6 @@ final class AuthManager: ObservableObject {
                 id: uid,
                 role: .regular
             )
-
             try db.collection("users").document(uid).setData(from: fallback, merge: true)
             user = fallback
 
@@ -97,7 +114,8 @@ final class AuthManager: ObservableObject {
             user = nil
         }
     }
-    
+
+
     func fetchAllUsers() async {
         allUsersError = nil
         isLoading = true
@@ -105,27 +123,25 @@ final class AuthManager: ObservableObject {
 
         do {
             let snapshot = try await db.collection("users").getDocuments()
-            allUsers = try snapshot.documents.map { try $0.data(as: UserModel.self) }
+            let users = try snapshot.documents.map { try $0.data(as: UserModel.self) }
+            allUsers  = users
+            allMovers = users.filter { $0.role == .mover }
         } catch {
             allUsersError = error.localizedDescription
-            allUsers = []
         }
     }
-    
-    //MARK: Address
-    
+
+
     func saveAddress(_ address: Address) async {
         guard let uid = Auth.auth().currentUser?.uid else {
             authError = "No logged in user."
             return
         }
-
         isLoading = true
         authError = nil
         defer { isLoading = false }
 
         do {
-            // Update just the address field (won't overwrite the whole doc)
             try await db.collection("users").document(uid).setData([
                 "address": [
                     "addressLine": address.addressLine,
@@ -135,7 +151,6 @@ final class AuthManager: ObservableObject {
                 ]
             ], merge: true)
 
-            // Update local @Published user too
             if var current = user {
                 current.address = address
                 user = current
@@ -147,18 +162,16 @@ final class AuthManager: ObservableObject {
 
     func loadAddress() async -> Address? {
         guard let uid = Auth.auth().currentUser?.uid else { return nil }
-
         do {
             let doc = try await db.collection("users").document(uid).getDocument()
             let model = try doc.data(as: UserModel.self)
             user = model
             return model.address
         } catch {
-            // Don’t force-error on first-time users with no address
             return nil
         }
     }
-    
+
     func fetchMoveRequests() async {
         moveRequestsError = nil
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -166,7 +179,6 @@ final class AuthManager: ObservableObject {
             moveRequestsError = "No logged in user."
             return
         }
-
         isLoading = true
         defer { isLoading = false }
 
@@ -174,12 +186,41 @@ final class AuthManager: ObservableObject {
             let snap = try await db.collection("moveRequests")
                 .whereField("userId", isEqualTo: uid)
                 .getDocuments()
-
             myMoveRequests = try snap.documents.map { try $0.data(as: MoveRequest.self) }
-
         } catch {
             moveRequestsError = error.localizedDescription
             myMoveRequests = []
+        }
+    }
+
+    func fetchAllMoveRequests() async {
+        moveRequestsError = nil
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let snap = try await db.collection("moveRequests")
+                .order(by: "createdAt", descending: true)
+                .getDocuments()
+            allMoveRequests = try snap.documents.map { try $0.data(as: MoveRequest.self) }
+        } catch {
+            moveRequestsError = error.localizedDescription
+            allMoveRequests = []
+        }
+    }
+    
+    func deleteUser(_ user: UserModel) async {
+        guard let id = user.id else { return }
+        isLoading = true
+        authError = nil
+        defer { isLoading = false }
+
+        do {
+            try await db.collection("users").document(id).delete()
+            allUsers.removeAll { $0.id == id }
+            allMovers.removeAll { $0.id == id }
+        } catch {
+            authError = error.localizedDescription
         }
     }
 }

@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
-import CoreData
 import FirebaseCore
 import FirebaseAuth
+import CoreData
 
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(_ application: UIApplication,
@@ -28,6 +28,7 @@ struct Moving_AppApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(authManager)
+                .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
         }
     }
 }

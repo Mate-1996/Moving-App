@@ -9,24 +9,26 @@ import SwiftUI
 
 struct MoveRequestConfirmationView: View {
     @Environment(\.presentationMode) var presentationMode
-    
-    let addressLine: String
-    let city: String
-    let province: String
-    let postalCode: String
+
+    let pickupAddress: Address
+    let destinationAddress: Address
     let numberOfRooms: String
     let numberOfFragileItems: String
     let floorLevel: String
     let hasElevator: Bool
-    let specialInstructions: String
-    
+    let specialInstructions:  String
+
     @State private var showSuccess = false
-    
+    @State private var showValidationError = false
+    @State private var errorMessage = ""
+
+    private let svc = MoveRequestService()
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color.white.ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 30) {
                         if showSuccess {
@@ -34,60 +36,66 @@ struct MoveRequestConfirmationView: View {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.system(size: 80))
                                     .foregroundColor(.green)
-                                
-                                Text("Request Sent!")
+
+                                Text("Request Sent")
                                     .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.black)
-                                
-                                Text("The admin will review your move request and contact you soon to discuss details and pricing.")
+
+                                Text("The admin will review your move request and contact you soon")
                                     .font(.system(size: 16))
                                     .foregroundColor(.gray)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                             }
                             .padding(.top, 60)
+
                         } else {
                             VStack(spacing: 16) {
                                 Image(systemName: "doc.text.magnifyingglass")
                                     .font(.system(size: 60))
                                     .foregroundColor(Color("goodPurple"))
                                     .padding(.top, 40)
-                                
+
                                 Text("Review Your Request")
                                     .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.black)
-                                Text("After submitting, move request details cannot be changed, any further info will be discussed by the mover in person.")
+
+                                Text("After submitting, details cannot be changed.")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(.gray)
                                     .multilineTextAlignment(.center)
                             }
-                            
-                           
+
                             VStack(alignment: .leading, spacing: 15) {
-                               
+
                                 VStack(alignment: .leading, spacing: 5) {
-                                    Text("Address")
+                                    Text("Pickup Address")
                                         .font(.system(size: 14, weight: .semibold))
                                         .foregroundColor(.gray)
-                                    Text(addressLine)
-                                        .foregroundColor(.black)
-                                    Text("\(city), \(province) \(postalCode)")
-                                        .foregroundColor(.black)
+                                    Text(pickupAddress.addressLine)
+                                    Text("\(pickupAddress.city), \(pickupAddress.province) \(pickupAddress.postalCode)")
+                                        .foregroundColor(.gray)
                                 }
-                                
+
                                 Divider()
-                                
+
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text("Destination Address")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.gray)
+                                    Text(destinationAddress.addressLine)
+                                    Text("\(destinationAddress.city), \(destinationAddress.province) \(destinationAddress.postalCode)")
+                                        .foregroundColor(.gray)
+                                }
+
+                                Divider()
+
                                 DetailRow(label: "Number of Rooms", value: numberOfRooms)
                                 Divider()
-                                
                                 DetailRow(label: "Fragile Items", value: numberOfFragileItems.isEmpty ? "None" : numberOfFragileItems)
                                 Divider()
-                                
                                 DetailRow(label: "Floor Level", value: floorLevel)
                                 Divider()
-                                
-                                DetailRow(label: "Elevator Available", value: hasElevator ? "Yes" : "No")
-                                
+                                DetailRow(label: "Elevator", value: hasElevator ? "Yes" : "No")
+
                                 if !specialInstructions.isEmpty {
                                     Divider()
                                     VStack(alignment: .leading, spacing: 5) {
@@ -96,7 +104,6 @@ struct MoveRequestConfirmationView: View {
                                             .foregroundColor(.gray)
                                         Text(specialInstructions)
                                             .font(.system(size: 14))
-                                            .foregroundColor(.black)
                                     }
                                 }
                             }
@@ -104,24 +111,7 @@ struct MoveRequestConfirmationView: View {
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(12)
                             .padding(.horizontal, 20)
-                            
-                            HStack(spacing: 10) {
-                                Image(systemName: "info.circle.fill")
-                                    .foregroundColor(.blue)
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("What happens next?")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.black)
-                                    Text("Admin will review and contact you to discuss pricing and schedule.")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(10)
-                            .padding(.horizontal, 20)
-                            
+
                             if showValidationError {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
@@ -135,11 +125,9 @@ struct MoveRequestConfirmationView: View {
                                 .cornerRadius(10)
                                 .padding(.horizontal, 20)
                             }
-                            
-                            Button(action: {
-                                submitRequest()
-                            }) {
-                                Text("Confirm & Send Request")
+
+                            Button(action: submitRequest) {
+                                Text("Confirm and Send Request")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.white)
                                     .padding()
@@ -149,7 +137,7 @@ struct MoveRequestConfirmationView: View {
                             }
                             .padding(.horizontal, 20)
                         }
-                        
+
                         Spacer()
                     }
                 }
@@ -159,21 +147,13 @@ struct MoveRequestConfirmationView: View {
             .toolbar {
                 if !showSuccess {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
-                            presentationMode.wrappedValue.dismiss()
-                        }
+                        Button("Cancel") { presentationMode.wrappedValue.dismiss() }
                     }
                 }
             }
         }
     }
-    
-    //MARK: Move Request Saving
-    @State private var showConfirmation = false
-    @State private var showValidationError = false
-    @State private var errorMessage = ""
-    private let svc = MoveRequestService()
-    
+
     func submitRequest() {
         showValidationError = false
         errorMessage = ""
@@ -187,17 +167,11 @@ struct MoveRequestConfirmationView: View {
 
         let fragile = Int(numberOfFragileItems) ?? 0
 
-        let addr = Address(
-            addressLine: addressLine,
-            city: city,
-            province: province,
-            postalCode: postalCode
-        )
-
         Task {
             do {
                 _ = try await svc.createMoveRequest(
-                    pickupAddress: addr,
+                    pickupAddress: pickupAddress,
+                    destinationAddress: destinationAddress,
                     numberOfRooms: rooms,
                     numberOfFragileItems: fragile,
                     floorLevel: floor,
@@ -205,16 +179,11 @@ struct MoveRequestConfirmationView: View {
                     specialInstructions: specialInstructions
                 )
 
-                // ✅ Update UI on success
-                withAnimation {
-                    showSuccess = true
-                }
+                withAnimation { showSuccess = true }
 
-                // Optional: auto close after 2.5 sec like you already do elsewhere
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     presentationMode.wrappedValue.dismiss()
                 }
-
             } catch {
                 errorMessage = error.localizedDescription
                 showValidationError = true

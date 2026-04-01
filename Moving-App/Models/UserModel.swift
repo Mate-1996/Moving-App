@@ -8,13 +8,21 @@
 import Foundation
 import FirebaseFirestore
 
-struct UserModel: Codable, Identifiable {
+struct UserModel: Codable, Identifiable, Hashable {
     var email: String
     var displayName: String
     var isActive: Bool
     @DocumentID var id: String?
     var role: UserRole
     var address: Address?
+    
+    static func == (lhs: UserModel, rhs: UserModel) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 struct Address: Codable {
