@@ -64,7 +64,7 @@ class ChatService {
     func listenToMessages(chatId: String, onChange: @escaping ([Message]) -> Void) -> ListenerRegistration {
         return db.collection("chats").document(chatId)
             .collection("messages")
-            .order(by: "sentAt", descending: true)
+            .order(by: "sentAt", descending: false)
             .addSnapshotListener { snapshot, _ in
                 guard let docs = snapshot?.documents else { return }
                 let messages = docs.compactMap { try? $0.data(as: Message.self) }
