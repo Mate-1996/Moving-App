@@ -49,7 +49,6 @@ final class AuthManager: ObservableObject {
             let profile = UserModel(
                 email: email,
                 displayName: displayName,
-                isActive: true,
                 id: uid,
                 role: role
             )
@@ -102,7 +101,6 @@ final class AuthManager: ObservableObject {
             let fallback = UserModel(
                 email: emailFallback ?? "",
                 displayName: "",
-                isActive: true,
                 id: uid,
                 role: .regular
             )

@@ -7,25 +7,61 @@
 
 import SwiftUI
 import CoreData
-
+import FirebaseFirestore
 
 struct AllMovesView: View {
     @EnvironmentObject var authManager: AuthManager
+
+    @State private var searchText = ""
+
+    private var filteredRequests: [MoveRequest] {
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else {
+            return authManager.allMoveRequests
+        }
+        let query = searchText.lowercased()
+        return authManager.allMoveRequests.filter { req in
+            req.pickupAddress.addressLine.lowercased().contains(query) ||
+            req.pickupAddress.city.lowercased().contains(query) ||
+            req.pickupAddress.province.lowercased().contains(query) ||
+            req.pickupAddress.postalCode.lowercased().contains(query) ||
+            (req.destinationAddress?.addressLine.lowercased().contains(query) ?? false) ||
+            (req.destinationAddress?.city.lowercased().contains(query) ?? false)
+        }
+    }
+
+    private var pending:  [MoveRequest] { filteredRequests.filter { $0.status == .pending } }
+    private var accepted: [MoveRequest] { filteredRequests.filter { $0.status == .accepted } }
+    private var done:     [MoveRequest] { filteredRequests.filter { $0.status == .completed } }
 
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("All Move Requests")
-                    .font(.largeTitle).bold()
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 12)
+
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    TextField("Search by address or city…", text: $searchText)
+                        .autocorrectionDisabled()
+                        .autocapitalization(.none)
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
 
                 if authManager.isLoading {
                     Spacer()
-                    HStack { Spacer(); ProgressView("Loading ..."); Spacer() }
+                    HStack { Spacer(); ProgressView("Loading…"); Spacer() }
                     Spacer()
 
                 } else if let err = authManager.moveRequestsError {
@@ -33,16 +69,19 @@ struct AllMovesView: View {
                     Text(err).foregroundColor(.red).padding(.horizontal, 20)
                     Spacer()
 
-                } else if authManager.allMoveRequests.isEmpty {
+                } else if filteredRequests.isEmpty {
                     Spacer()
-                    Text("No move requests yet.").foregroundColor(.gray).padding(.horizontal, 20)
+                    VStack(spacing: 10) {
+                        Image(systemName: searchText.isEmpty ? "shippingbox" : "magnifyingglass")
+                            .font(.system(size: 40))
+                            .foregroundColor(Color(.systemGray3))
+                        Text(searchText.isEmpty ? "No move requests yet." : "No results for \"\(searchText)\"")
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity)
                     Spacer()
 
                 } else {
-                    let pending  = authManager.allMoveRequests.filter { $0.status == .pending }
-                    let accepted = authManager.allMoveRequests.filter { $0.status == .accepted }
-                    let done     = authManager.allMoveRequests.filter { $0.status == .completed }
-
                     ScrollView {
                         VStack(alignment: .leading, spacing: 24) {
                             if !pending.isEmpty {
@@ -50,8 +89,7 @@ struct AllMovesView: View {
                                 ForEach(pending) { req in
                                     NavigationLink(destination: MoveDetailAdminView(request: req)) {
                                         MoveRequestRow(request: req)
-                                    }
-                                    .buttonStyle(.plain)
+                                    }.buttonStyle(.plain)
                                 }
                             }
                             if !accepted.isEmpty {
@@ -59,8 +97,7 @@ struct AllMovesView: View {
                                 ForEach(accepted) { req in
                                     NavigationLink(destination: MoveDetailAdminView(request: req)) {
                                         MoveRequestRow(request: req)
-                                    }
-                                    .buttonStyle(.plain)
+                                    }.buttonStyle(.plain)
                                 }
                             }
                             if !done.isEmpty {
@@ -68,8 +105,7 @@ struct AllMovesView: View {
                                 ForEach(done) { req in
                                     NavigationLink(destination: MoveDetailAdminView(request: req)) {
                                         MoveRequestRow(request: req)
-                                    }
-                                    .buttonStyle(.plain)
+                                    }.buttonStyle(.plain)
                                 }
                             }
                         }
@@ -92,165 +128,6 @@ struct AllMovesView: View {
     }
 }
 
-
-struct MoveDetailAdminView: View {
-    @EnvironmentObject var authManager: AuthManager
-    let request: MoveRequest
-
-    @State private var showMoverPicker = false
-    @State private var isWorking = false
-    @State private var errorMessage: String?
-    @State private var successMessage: String?
-
-    private let svc = MoveRequestService()
-
-    var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-
-                    HStack {
-                        StatusBadge(status: request.status)
-                        Spacer()
-                        if let date = request.createdAt {
-                            Text(date.formatted(date: .abbreviated, time: .shortened))
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    }
-
-                    DetailSection(title: "Pickup Address") {
-                        Text(request.pickupAddress.addressLine).font(.body)
-                        Text("\(request.pickupAddress.city), \(request.pickupAddress.province) \(request.pickupAddress.postalCode)")
-                            .font(.subheadline).foregroundColor(.gray)
-                    }
-
-                    DetailSection(title: "Move Details") {
-                        DetailRow(label: "Destination", value: request.destinationAddress.addressLine)
-                        Divider()
-                        DetailRow(label: "Rooms", value: "\(request.numberOfRooms)")
-                        Divider()
-                        DetailRow(label: "Fragile items", value: "\(request.numberOfFragileItems)")
-                        Divider()
-                        DetailRow(label: "Floor level", value: "\(request.floorLevel)")
-                        Divider()
-                        DetailRow(label: "Elevator", value: request.hasElevator ? "Yes" : "No")
-                    }
-
-                    if let notes = request.specialInstructions, !notes.isEmpty {
-                        DetailSection(title: "Special Instructions") {
-                            Text(notes).font(.body)
-                        }
-                    }
-
-                    DetailSection(title: "Assigned Mover") {
-                        if let moverId = request.moverId,
-                           let mover = authManager.allMovers.first(where: { $0.id == moverId }) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "figure.walk")
-                                    .foregroundColor(.white)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color.orange)
-                                    .cornerRadius(8)
-                                VStack(alignment: .leading) {
-                                    Text(mover.displayName).font(.headline)
-                                    Text(mover.email).font(.caption).foregroundColor(.gray)
-                                }
-                            }
-                        } else {
-                            Text("No mover assigned yet").foregroundColor(.gray)
-                        }
-
-                        Button(action: { showMoverPicker = true }) {
-                            Label("Change Mover", systemImage: "person.badge.plus.fill")
-                                .font(.subheadline)
-                        }
-                        .padding(.top, 4)
-                    }
-
-                    if let requestId = request.id {
-                        AdminNotesView(requestId: requestId)
-                    }
-
-                    if let err = errorMessage {
-                        Label(err, systemImage: "exclamationmark.triangle.fill")
-                            .foregroundColor(.red).font(.caption)
-                    }
-                    if let ok = successMessage {
-                        Label(ok, systemImage: "checkmark.circle.fill")
-                            .foregroundColor(.green).font(.caption)
-                    }
-
-                    if request.status == .pending {
-                        Button(action: acceptRequest) {
-                            if isWorking {
-                                ProgressView().frame(maxWidth: .infinity).padding()
-                            } else {
-                                Text("Accept Move Request")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color("goodPurple"))
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                    .bold()
-                            }
-                        }
-                        .disabled(isWorking)
-                    }
-
-                    Spacer(minLength: 40)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-            }
-        }
-        .navigationTitle("Request Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showMoverPicker) {
-            MoverPickerSheet(requestId: request.id ?? "") { moverId in
-                Task { await assignMover(moverId: moverId) }
-            }
-            .environmentObject(authManager)
-        }
-    }
-
-    private func acceptRequest() {
-        guard let id = request.id else { return }
-        isWorking = true
-        errorMessage = nil
-        Task {
-            do {
-                try await svc.acceptRequest(id: id)
-                successMessage = "Request accepted!"
-                await authManager.fetchAllMoveRequests()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-            isWorking = false
-        }
-    }
-
-    private func assignMover(moverId: String) async {
-        guard let requestId = request.id,
-              let adminId   = authManager.user?.id else { return }
-        isWorking = true
-        errorMessage = nil
-        do {
-            try await svc.assignMover(requestId: requestId, moverId: moverId, adminId: adminId)
-            successMessage = request.status == .accepted
-                ? "Mover assigned, group chat created"
-                : "Mover assigned"
-            await authManager.fetchAllMoveRequests()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isWorking = false
-    }
-}
-
-
 struct AdminNotesView: View {
     let requestId: String
 
@@ -258,9 +135,7 @@ struct AdminNotesView: View {
     @State private var noteText = ""
     @State private var notes: [MoveNote] = []
 
-    private var noteService: MoveNoteService {
-        MoveNoteService(context: context)
-    }
+    private var noteService: MoveNoteService { MoveNoteService(context: context) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -270,12 +145,9 @@ struct AdminNotesView: View {
 
             if notes.isEmpty {
                 Text("No notes yet")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.gray.opacity(0.06))
-                    .cornerRadius(12)
+                    .font(.subheadline).foregroundColor(.gray)
+                    .padding().frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.gray.opacity(0.06)).cornerRadius(12)
             } else {
                 VStack(spacing: 8) {
                     ForEach(notes, id: \.objectID) { note in
@@ -292,13 +164,10 @@ struct AdminNotesView: View {
                     .padding(10)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(10)
-
                 Button(action: submitNote) {
                     Image(systemName: "paperplane.fill")
-                        .foregroundColor(.white)
-                        .padding(10)
-                        .background(Color("goodPurple"))
-                        .cornerRadius(10)
+                        .foregroundColor(.white).padding(10)
+                        .background(Color("goodPurple")).cornerRadius(10)
                 }
                 .disabled(noteText.trimmingCharacters(in: .whitespaces).isEmpty)
             }
@@ -308,48 +177,31 @@ struct AdminNotesView: View {
 
     private func submitNote() {
         noteService.addNote(text: noteText, requestId: requestId)
-        noteText = ""
-        loadNotes()
+        noteText = ""; loadNotes()
     }
 
-    private func loadNotes() {
-        notes = noteService.fetchNotes(for: requestId)
-    }
+    private func loadNotes() { notes = noteService.fetchNotes(for: requestId) }
 }
-
 
 private struct NoteRow: View {
     let note: MoveNote
     let onDelete: () -> Void
-
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "note.text")
-                .foregroundColor(Color("goodPurple"))
-                .padding(.top, 2)
-
+            Image(systemName: "note.text").foregroundColor(Color("goodPurple")).padding(.top, 2)
             VStack(alignment: .leading, spacing: 3) {
-                Text(note.text ?? "")
-                    .font(.subheadline)
-                    .foregroundColor(.black)
+                Text(note.text ?? "").font(.subheadline).foregroundColor(.black)
                 if let date = note.createdAt {
                     Text(date.formatted(date: .abbreviated, time: .shortened))
-                        .font(.caption2)
-                        .foregroundColor(.gray)
+                        .font(.caption2).foregroundColor(.gray)
                 }
             }
-
             Spacer()
-
             Button(action: onDelete) {
-                Image(systemName: "trash")
-                    .font(.caption)
-                    .foregroundColor(.red.opacity(0.7))
+                Image(systemName: "trash").font(.caption).foregroundColor(.red.opacity(0.7))
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.06))
-        .cornerRadius(12)
+        .padding().background(Color.gray.opacity(0.06)).cornerRadius(12)
     }
 }
 
@@ -358,32 +210,83 @@ struct MoverPickerSheet: View {
     @EnvironmentObject var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
-    let requestId: String
-    let onSelect: (String) -> Void
+    let requestId:       String
+    let moveDate:        Date
+    let alreadyAssigned: [String]
+    let onSelect:        (String) -> Void
+
+    @State private var unavailableMoverIds: Set<String> = []
+    @State private var busyMoverIds:        Set<String> = []
+    @State private var isChecking = true
+
+    private let timeOffSvc = TimeOffService()
 
     var body: some View {
         NavigationStack {
-            List(authManager.allMovers) { mover in
-                Button(action: {
-                    if let id = mover.id {
-                        onSelect(id)
-                        dismiss()
+            Group {
+                if isChecking {
+                    ProgressView("Checking availability…")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List(authManager.allMovers) { mover in
+                        let onLeave      = unavailableMoverIds.contains(mover.id ?? "")
+                        let alreadyAdded = alreadyAssigned.contains(mover.id ?? "")
+                        let isBusy       = busyMoverIds.contains(mover.id ?? "")
+                        let unavailable  = onLeave || alreadyAdded || isBusy
+
+                        HStack(spacing: 14) {
+                            Image(systemName: "figure.walk")
+                                .foregroundColor(.white)
+                                .frame(width: 40, height: 40)
+                                .background(unavailable ? Color.gray : Color.orange)
+                                .cornerRadius(10)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(mover.displayName)
+                                    .font(.headline)
+                                    .foregroundColor(unavailable ? .secondary : .primary)
+                                Text(mover.email)
+                                    .font(.caption).foregroundColor(.secondary)
+
+                                if alreadyAdded {
+                                    Text("Already assigned to this move")
+                                        .font(.caption).foregroundColor(.blue)
+                                } else if onLeave {
+                                    Text("On approved time off")
+                                        .font(.caption).foregroundColor(.red)
+                                } else if isBusy {
+                                    Text("Assigned to another active move")
+                                        .font(.caption).foregroundColor(.orange)
+                                }
+                            }
+
+                            Spacer()
+
+                            if !unavailable {
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard !unavailable, let id = mover.id else { return }
+                            onSelect(id)
+                            dismiss()
+                        }
+                        .opacity(unavailable ? 0.5 : 1)
                     }
-                }) {
-                    HStack(spacing: 14) {
-                        Image(systemName: "figure.walk")
-                            .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
-                            .background(Color.orange)
-                            .cornerRadius(10)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(mover.displayName).font(.headline)
-                            Text(mover.email).font(.caption).foregroundColor(.gray)
+                    .listStyle(.plain)
+                    .overlay {
+                        if authManager.allMovers.isEmpty {
+                            ContentUnavailableView(
+                                "No movers found",
+                                systemImage: "figure.walk",
+                                description: Text("Create mover accounts first.")
+                            )
                         }
                     }
-                    .padding(.vertical, 4)
                 }
-                .buttonStyle(.plain)
             }
             .navigationTitle("Select a Mover")
             .navigationBarTitleDisplayMode(.inline)
@@ -392,28 +295,48 @@ struct MoverPickerSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .overlay {
-                if authManager.allMovers.isEmpty {
-                    ContentUnavailableView(
-                        "No movers found",
-                        systemImage: "figure.walk",
-                        description: Text("Create mover accounts first from the admin panel.")
-                    )
-                }
+            .task { await checkAvailability() }
+        }
+    }
+
+    private func checkAvailability() async {
+        isChecking = true
+        var onLeave = Set<String>()
+        var busy    = Set<String>()
+
+        if let approvedLeave = try? await timeOffSvc.fetchApprovedLeave() {
+            let cal      = Calendar.current
+            let checkDay = cal.startOfDay(for: moveDate)
+            for req in approvedLeave {
+                let s = cal.startOfDay(for: req.startDate)
+                let e = cal.startOfDay(for: req.endDate)
+                if checkDay >= s && checkDay <= e { onLeave.insert(req.moverId) }
             }
         }
+
+        let db = Firestore.firestore()
+        if let snap = try? await db.collection("moveRequests")
+            .whereField("status", isEqualTo: MoveRequestStatus.accepted.rawValue)
+            .getDocuments() {
+            let requests = snap.documents.compactMap { try? $0.data(as: MoveRequest.self) }
+            for req in requests {
+                guard req.id != requestId else { continue }
+                for moverId in req.moverIds ?? [] { busy.insert(moverId) }
+            }
+        }
+
+        unavailableMoverIds = onLeave
+        busyMoverIds = busy
+        isChecking = false
     }
 }
 
 
 private struct SectionHeader: View {
-    let title: String
-    let color: Color
+    let title: String; let color: Color
     var body: some View {
-        Text(title)
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(color)
-            .padding(.top, 4)
+        Text(title).font(.system(size: 13, weight: .semibold))
+            .foregroundColor(color).padding(.top, 4)
     }
 }
 
@@ -422,15 +345,9 @@ struct DetailSection<Content: View>: View {
     @ViewBuilder let content: () -> Content
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.gray)
-            VStack(alignment: .leading, spacing: 8) {
-                content()
-            }
-            .padding()
-            .background(Color.gray.opacity(0.06))
-            .cornerRadius(12)
+            Text(title).font(.system(size: 13, weight: .semibold)).foregroundColor(.gray)
+            VStack(alignment: .leading, spacing: 8) { content() }
+                .padding().background(Color.gray.opacity(0.06)).cornerRadius(12)
         }
     }
 }
@@ -440,16 +357,14 @@ struct StatusBadge: View {
     var body: some View {
         Text(status.rawValue.capitalized)
             .font(.system(size: 12, weight: .semibold))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 12).padding(.vertical, 5)
             .background(statusColor.opacity(0.15))
-            .foregroundColor(statusColor)
-            .cornerRadius(20)
+            .foregroundColor(statusColor).cornerRadius(20)
     }
     private var statusColor: Color {
         switch status {
         case .pending: return .orange
-        case .accepted: return Color("goodPurple")
+        case .accepted:  return Color("goodPurple")
         case .completed: return .green
         }
     }
@@ -460,38 +375,25 @@ struct MoveRequestRow: View {
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: "truck.box.fill")
-                .font(.system(size: 20))
-                .foregroundColor(.white)
+                .font(.system(size: 20)).foregroundColor(.white)
                 .frame(width: 44, height: 44)
-                .background(statusColor(request.status))
-                .cornerRadius(10)
-
+                .background(statusColor(request.status)).cornerRadius(10)
             VStack(alignment: .leading, spacing: 3) {
                 Text(request.pickupAddress.addressLine)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.black)
-                    .lineLimit(1)
+                    .font(.system(size: 15, weight: .semibold)).foregroundColor(.black).lineLimit(1)
                 Text("\(request.pickupAddress.city), \(request.pickupAddress.province)")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                    .font(.caption).foregroundColor(.gray)
                 StatusBadge(status: request.status)
             }
-
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
-                .font(.caption)
+            Image(systemName: "chevron.right").foregroundColor(.gray).font(.caption)
         }
-        .padding()
-        .background(Color.gray.opacity(0.06))
-        .cornerRadius(14)
+        .padding().background(Color.gray.opacity(0.06)).cornerRadius(14)
     }
-
     private func statusColor(_ s: MoveRequestStatus) -> Color {
         switch s {
-        case .pending: return .orange
-        case .accepted: return Color("goodPurple")
+        case .pending:   return .orange
+        case .accepted:  return Color("goodPurple")
         case .completed: return .green
         }
     }

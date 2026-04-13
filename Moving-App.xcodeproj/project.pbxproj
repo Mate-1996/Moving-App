@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6C00A1B92F5FA87000E82BEC /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C00A1B82F5FA87000E82BEC /* MapKit.framework */; };
+		6C4A66A72F8AB40A0075E78B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 6C4A66A62F8AB40A0075E78B /* FirebaseStorage */; };
 		6C7845D22F3A632100FBD74A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6C7845D12F3A632100FBD74A /* FirebaseCore */; };
 		6C7845D42F3A632900FBD74A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6C7845D32F3A632900FBD74A /* FirebaseAuth */; };
 		6C7845D62F3A633400FBD74A /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 6C7845D52F3A633400FBD74A /* FirebaseDatabase */; };
@@ -19,9 +20,22 @@
 		6C7733F22F366A2300D71F74 /* Moving-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Moving-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C4A66A52F8AB2810075E78B /* Exceptions for "Moving-App" folder in "Moving-App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C7733F12F366A2300D71F74 /* Moving-App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6C7733F42F366A2300D71F74 /* Moving-App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C4A66A52F8AB2810075E78B /* Exceptions for "Moving-App" folder in "Moving-App" target */,
+			);
 			path = "Moving-App";
 			sourceTree = "<group>";
 		};
@@ -37,6 +51,7 @@
 				6C00A1B92F5FA87000E82BEC /* MapKit.framework in Frameworks */,
 				6C7845D22F3A632100FBD74A /* FirebaseCore in Frameworks */,
 				6C7845D42F3A632900FBD74A /* FirebaseAuth in Frameworks */,
+				6C4A66A72F8AB40A0075E78B /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +107,7 @@
 				6C7845D32F3A632900FBD74A /* FirebaseAuth */,
 				6C7845D52F3A633400FBD74A /* FirebaseDatabase */,
 				6C7845D72F3A635200FBD74A /* FirebaseFirestoreCombine-Community */,
+				6C4A66A62F8AB40A0075E78B /* FirebaseStorage */,
 			);
 			productName = "Moving-App";
 			productReference = 6C7733F22F366A2300D71F74 /* Moving-App.app */;
@@ -288,7 +304,10 @@
 				DEVELOPMENT_TEAM = J3C463623K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Moving-App/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -321,7 +340,10 @@
 				DEVELOPMENT_TEAM = J3C463623K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Moving-App/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -379,6 +401,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6C4A66A62F8AB40A0075E78B /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6C7845CF2F3A630100FBD74A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
 		6C7845D12F3A632100FBD74A /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6C7845CF2F3A630100FBD74A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

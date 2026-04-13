@@ -33,13 +33,6 @@ struct UserRowCard: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.black)
                     
-                    Circle()
-                        .frame(width: 6, height: 6)
-                        .foregroundColor(user.isActive ? .green : .red)
-                    
-                    Text(user.isActive ? "Active" : "Inactive")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
                 }
             }
             

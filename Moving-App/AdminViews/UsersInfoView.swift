@@ -20,7 +20,6 @@ struct UsersInfoView: View {
                 .foregroundColor(.gray)
             
             Text("Role: \(user.role.rawValue.capitalized)")
-            Text("Status: \(user.isActive ? "Active" : "Inactive")")
             
             Spacer()
         }

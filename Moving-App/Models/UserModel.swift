@@ -11,7 +11,6 @@ import FirebaseFirestore
 struct UserModel: Codable, Identifiable, Hashable {
     var email: String
     var displayName: String
-    var isActive: Bool
     @DocumentID var id: String?
     var role: UserRole
     var address: Address?

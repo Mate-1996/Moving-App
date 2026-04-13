@@ -12,22 +12,27 @@ import FirebaseAuth
 class ChatService {
     private let db = Firestore.firestore()
 
-    func createChat(requestId: String, userId: String, moverId: String, adminId: String) async throws -> String {
+    func createChat(requestId: String, userId: String,
+                    moverIds: [String], adminId: String) async throws -> String {
         let existing = try await db.collection("chats")
             .whereField("requestId", isEqualTo: requestId)
             .getDocuments()
 
         if let first = existing.documents.first {
-            return first.documentID
+            let chatId = first.documentID
+            try await db.collection("chats").document(chatId).updateData([
+                "participantIds": FieldValue.arrayUnion(moverIds)
+            ])
+            return chatId
         }
 
+        let participantIds = [userId, adminId] + moverIds
         let chat = Chat(
-            requestId: requestId,
-            participantIds: [userId, moverId, adminId],
-            lastMessage: "Chat started",
-            lastMessageAt: Date()
+            requestId:      requestId,
+            participantIds: participantIds,
+            lastMessage:    "Chat started",
+            lastMessageAt:  Date()
         )
-
         let ref = try db.collection("chats").addDocument(from: chat)
         return ref.documentID
     }
@@ -44,23 +49,15 @@ class ChatService {
 
     func sendMessage(chatId: String, text: String, senderName: String) async throws {
         guard let uid = Auth.auth().currentUser?.uid else { return }
-
-        let message = Message(
-            senderId: uid,
-            senderName: senderName,
-            text: text
-        )
-
+        let message = Message(senderId: uid, senderName: senderName, text: text)
         try db.collection("chats").document(chatId)
             .collection("messages").addDocument(from: message)
-
         try await db.collection("chats").document(chatId).updateData([
-            "lastMessage": text,
+            "lastMessage":   text,
             "lastMessageAt": Date()
         ])
     }
 
-  
     func listenToMessages(chatId: String, onChange: @escaping ([Message]) -> Void) -> ListenerRegistration {
         return db.collection("chats").document(chatId)
             .collection("messages")
@@ -70,5 +67,14 @@ class ChatService {
                 let messages = docs.compactMap { try? $0.data(as: Message.self) }
                 onChange(messages)
             }
+    }
+
+    func deleteChat(chatId: String) async throws {
+        let messages = try await db.collection("chats").document(chatId)
+            .collection("messages").getDocuments()
+        for doc in messages.documents {
+            try await doc.reference.delete()
+        }
+        try await db.collection("chats").document(chatId).delete()
     }
 }

@@ -48,23 +48,49 @@ class MoveRequestService {
 
 
     func acceptRequest(id: String) async throws {
+        let ref = db.collection("moveRequests").document(id)
+        try await ref.updateData(["status": MoveRequestStatus.accepted.rawValue])
+
+        let doc = try await ref.getDocument()
+        guard let request = try? doc.data(as: MoveRequest.self) else { return }
+        guard let adminId = Auth.auth().currentUser?.uid else { return }
+        let movers = request.moverIds ?? []
+        if !movers.isEmpty {
+            _ = try await chatService.createChat(
+                requestId: id,
+                userId: request.userId,
+                moverIds: movers,
+                adminId: adminId
+            )
+        }
+    }
+
+
+    func completeRequest(id: String) async throws {
         try await db.collection("moveRequests").document(id)
-            .updateData(["status": MoveRequestStatus.accepted.rawValue])
+            .updateData(["status": MoveRequestStatus.completed.rawValue])
+    }
+
+
+    func cancelRequest(id: String) async throws {
+        try await db.collection("moveRequests").document(id).delete()
     }
 
 
     func assignMover(requestId: String, moverId: String, adminId: String) async throws {
         let ref = db.collection("moveRequests").document(requestId)
-        try await ref.updateData(["moverId": moverId])
+        try await ref.updateData([
+            "moverIds": FieldValue.arrayUnion([moverId])
+        ])
 
         let doc = try await ref.getDocument()
         guard let request = try? doc.data(as: MoveRequest.self) else { return }
 
         if request.status == .accepted {
-            try await chatService.createChat(
+            _ = try await chatService.createChat(
                 requestId: requestId,
                 userId: request.userId,
-                moverId: moverId,
+                moverIds: request.moverIds ?? [],
                 adminId: adminId
             )
         }
