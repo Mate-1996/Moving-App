@@ -95,7 +95,7 @@ struct LoginView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(nil)
         .navigationBarHidden(true)
     }
 

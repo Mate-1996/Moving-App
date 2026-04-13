@@ -43,7 +43,6 @@ struct UserView: View {
 
             Button(action: { authManager.signOut() }) {
                 HStack {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
                     Text("Logout")
                 }
                 .foregroundColor(.white)

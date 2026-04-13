@@ -67,20 +67,6 @@ struct TimeOffView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
 
-                HStack(spacing: 8) {
-                    Image(systemName: "info.circle.fill")
-                        .foregroundColor(Color("goodPurple"))
-                        .font(.system(size: 14))
-                    Text("Requests must be made at least 2 weeks in advance and have to have admins approval")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-                .padding(12)
-                .background(Color("goodPurple").opacity(0.08))
-                .cornerRadius(12)
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-
                 if isLoading {
                     Spacer()
                     ProgressView()
@@ -200,8 +186,6 @@ struct TimeOffFormView: View {
                     .padding(.horizontal, 20)
 
                     HStack {
-                        Image(systemName: "sun.max.fill")
-                            .foregroundColor(.orange)
                         Text("\(numberOfDays) day\(numberOfDays == 1 ? "" : "s") selected")
                             .font(.system(size: 15, weight: .semibold))
                     }

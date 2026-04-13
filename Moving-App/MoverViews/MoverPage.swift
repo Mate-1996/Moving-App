@@ -61,7 +61,6 @@ struct MoverPage: View {
 
                         Button(action: { authManager.signOut() }) {
                             HStack(spacing: 8) {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
                                 Text("Logout").fontWeight(.semibold)
                             }
                             .foregroundColor(.secondary)

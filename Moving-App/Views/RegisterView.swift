@@ -104,7 +104,7 @@ struct RegisterView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(nil)
     }
 
     private func register() {

@@ -31,7 +31,7 @@ struct AllMovesView: View {
 
     private var pending:  [MoveRequest] { filteredRequests.filter { $0.status == .pending } }
     private var accepted: [MoveRequest] { filteredRequests.filter { $0.status == .accepted } }
-    private var done:     [MoveRequest] { filteredRequests.filter { $0.status == .completed } }
+    private var done: [MoveRequest] { filteredRequests.filter { $0.status == .completed } }
 
     var body: some View {
         ZStack {
@@ -42,7 +42,7 @@ struct AllMovesView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    TextField("Search by address or city…", text: $searchText)
+                    TextField("Search by address or city", text: $searchText)
                         .autocorrectionDisabled()
                         .autocapitalization(.none)
                     if !searchText.isEmpty {
@@ -61,7 +61,7 @@ struct AllMovesView: View {
 
                 if authManager.isLoading {
                     Spacer()
-                    HStack { Spacer(); ProgressView("Loading…"); Spacer() }
+                    HStack { Spacer(); ProgressView("Loading"); Spacer() }
                     Spacer()
 
                 } else if let err = authManager.moveRequestsError {
@@ -72,9 +72,6 @@ struct AllMovesView: View {
                 } else if filteredRequests.isEmpty {
                     Spacer()
                     VStack(spacing: 10) {
-                        Image(systemName: searchText.isEmpty ? "shippingbox" : "magnifyingglass")
-                            .font(.system(size: 40))
-                            .foregroundColor(Color(.systemGray3))
                         Text(searchText.isEmpty ? "No move requests yet." : "No results for \"\(searchText)\"")
                             .foregroundColor(.gray)
                     }
@@ -210,13 +207,13 @@ struct MoverPickerSheet: View {
     @EnvironmentObject var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
-    let requestId:       String
-    let moveDate:        Date
+    let requestId: String
+    let moveDate: Date
     let alreadyAssigned: [String]
-    let onSelect:        (String) -> Void
+    let onSelect: (String) -> Void
 
     @State private var unavailableMoverIds: Set<String> = []
-    @State private var busyMoverIds:        Set<String> = []
+    @State private var busyMoverIds: Set<String> = []
     @State private var isChecking = true
 
     private let timeOffSvc = TimeOffService()
@@ -225,22 +222,16 @@ struct MoverPickerSheet: View {
         NavigationStack {
             Group {
                 if isChecking {
-                    ProgressView("Checking availability…")
+                    ProgressView("Checking availability")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List(authManager.allMovers) { mover in
-                        let onLeave      = unavailableMoverIds.contains(mover.id ?? "")
+                        let onLeave = unavailableMoverIds.contains(mover.id ?? "")
                         let alreadyAdded = alreadyAssigned.contains(mover.id ?? "")
-                        let isBusy       = busyMoverIds.contains(mover.id ?? "")
-                        let unavailable  = onLeave || alreadyAdded || isBusy
+                        let isBusy = busyMoverIds.contains(mover.id ?? "")
+                        let unavailable = onLeave || alreadyAdded || isBusy
 
                         HStack(spacing: 14) {
-                            Image(systemName: "figure.walk")
-                                .foregroundColor(.white)
-                                .frame(width: 40, height: 40)
-                                .background(unavailable ? Color.gray : Color.orange)
-                                .cornerRadius(10)
-
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(mover.displayName)
                                     .font(.headline)
@@ -302,10 +293,10 @@ struct MoverPickerSheet: View {
     private func checkAvailability() async {
         isChecking = true
         var onLeave = Set<String>()
-        var busy    = Set<String>()
+        var busy = Set<String>()
 
         if let approvedLeave = try? await timeOffSvc.fetchApprovedLeave() {
-            let cal      = Calendar.current
+            let cal = Calendar.current
             let checkDay = cal.startOfDay(for: moveDate)
             for req in approvedLeave {
                 let s = cal.startOfDay(for: req.startDate)
@@ -374,10 +365,6 @@ struct MoveRequestRow: View {
     let request: MoveRequest
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: "truck.box.fill")
-                .font(.system(size: 20)).foregroundColor(.white)
-                .frame(width: 44, height: 44)
-                .background(statusColor(request.status)).cornerRadius(10)
             VStack(alignment: .leading, spacing: 3) {
                 Text(request.pickupAddress.addressLine)
                     .font(.system(size: 15, weight: .semibold)).foregroundColor(.black).lineLimit(1)

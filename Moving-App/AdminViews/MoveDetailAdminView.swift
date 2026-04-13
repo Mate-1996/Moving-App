@@ -73,11 +73,6 @@ struct MoveDetailAdminView: View {
                             ForEach(request.moverIds ?? [], id: \.self) { moverId in
                                 if let mover = authManager.allMovers.first(where: { $0.id == moverId }) {
                                     HStack(spacing: 10) {
-                                        Image(systemName: "figure.walk")
-                                            .foregroundColor(.white)
-                                            .frame(width: 36, height: 36)
-                                            .background(Color.orange)
-                                            .cornerRadius(8)
                                         VStack(alignment: .leading) {
                                             Text(mover.displayName).font(.headline)
                                             Text(mover.email).font(.caption).foregroundColor(.gray)
@@ -137,8 +132,8 @@ struct MoveDetailAdminView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showMoverPicker) {
             MoverPickerSheet(
-                requestId:       request.id ?? "",
-                moveDate:        request.createdAt ?? Date(),
+                requestId: request.id ?? "",
+                moveDate: request.createdAt ?? Date(),
                 alreadyAssigned: request.moverIds ?? []
             ) { moverId in
                 Task { await assignMover(moverId: moverId) }
@@ -153,7 +148,7 @@ struct MoveDetailAdminView: View {
         do {
             try await svc.acceptRequest(id: id)
             request.status  = .accepted
-            successMessage  = "Request accepted!"
+            successMessage  = "Request accepted"
             await authManager.fetchAllMoveRequests()
         } catch {
             errorMessage = error.localizedDescription
@@ -197,10 +192,10 @@ struct MoveDetailAdminView: View {
     
     
     private struct ActionButton: View {
-        let title:     String
-        let color:     Color
+        let title: String
+        let color: Color
         let isWorking: Bool
-        let action:    () async -> Void
+        let action: () async -> Void
         
         var body: some View {
             Button(action: { Task { await action() } }) {

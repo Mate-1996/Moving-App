@@ -75,9 +75,6 @@ struct MoveRequestsView: View {
                 } else if authManager.myMoveRequests.isEmpty {
                     Spacer()
                     VStack(spacing: 12) {
-                        Image(systemName: "shippingbox")
-                            .font(.system(size: 48))
-                            .foregroundColor(Color(.systemGray3))
                         Text("No move requests yet")
                             .font(.headline).foregroundColor(.secondary)
                         Text("Submit a move request from the Organize Move section.")

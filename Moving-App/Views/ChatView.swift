@@ -181,7 +181,7 @@ private struct ChatRow: View {
 
     private func previewText(_ text: String?) -> String {
         guard let text else { return "Chat started" }
-        if text.hasPrefix(ImageUploadService.imagePrefix) { return "📷 Photo" }
+        if text.hasPrefix(ImageUploadService.imagePrefix) { return "Photo" }
         return text
     }
 }
@@ -245,7 +245,7 @@ struct ChatRoomView: View {
             if isUploadingPhoto {
                 HStack(spacing: 8) {
                     ProgressView().tint(Color("goodPurple"))
-                    Text("Sending photo…").font(.caption).foregroundColor(.secondary)
+                    Text("Sending photo").font(.caption).foregroundColor(.secondary)
                 }
                 .padding(.horizontal, 16).padding(.vertical, 6)
             }
@@ -275,7 +275,7 @@ struct ChatRoomView: View {
                         .font(.system(size: 22)).foregroundColor(Color("goodPurple"))
                 }
 
-                TextField("Message…", text: $draftText, axis: .vertical)
+                TextField("Message", text: $draftText, axis: .vertical)
                     .lineLimit(1...4)
                     .padding(10)
                     .background(Color.gray.opacity(0.1))

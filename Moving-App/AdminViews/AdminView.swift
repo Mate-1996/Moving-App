@@ -13,16 +13,9 @@ struct AdminView: View {
                     VStack(spacing: 28) {
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Hello,")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.secondary)
                             Text(authManager.user?.displayName ?? "Admin")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.primary)
-                            Text("Manage your platform")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                                .padding(.top, 2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 24)
@@ -31,7 +24,7 @@ struct AdminView: View {
                         VStack(spacing: 14) {
                             AdminNavCard(icon: "person.3.fill",
                                          title: "All Users",
-                                         subtitle: "View and manage accounts",
+                                         subtitle: "Manage Accounts",
                                          color: Color("goodPurple"),
                                          destination: AnyView(UsersListView()))
 
@@ -69,7 +62,6 @@ struct AdminView: View {
 
                         Button(action: { authManager.signOut() }) {
                             HStack(spacing: 8) {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
                                 Text("Logout").fontWeight(.semibold)
                             }
                             .foregroundColor(.secondary)

@@ -53,8 +53,6 @@ struct OrganizeMoveView: View {
 
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(Color("goodPurple"))
                             Text("Moving From")
                                 .font(.system(size: 16, weight: .semibold))
                         }
@@ -72,8 +70,6 @@ struct OrganizeMoveView: View {
                             .cornerRadius(10)
                         } else {
                             HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.red)
                                 Text("No pickup address set.")
                                     .font(.system(size: 12))
                                     .foregroundColor(.red)
@@ -85,7 +81,6 @@ struct OrganizeMoveView: View {
 
                         Button(action: { showPickupMapPicker = true }) {
                             HStack {
-                                Image(systemName: "map.fill")
                                 Text("Change on map")
                                     .fontWeight(.semibold)
                             }
@@ -97,8 +92,6 @@ struct OrganizeMoveView: View {
 
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            Image(systemName: "mappin.and.ellipse")
-                                .foregroundColor(.orange)
                             Text("Moving To")
                                 .font(.system(size: 16, weight: .semibold))
                         }
@@ -126,7 +119,6 @@ struct OrganizeMoveView: View {
 
                         Button(action: { showDestinationMapPicker = true }) {
                             HStack {
-                                Image(systemName: "map.fill")
                                 Text(destAddressLine.isEmpty ? "Pick destination on map" : "Change on map")
                                     .fontWeight(.semibold)
                             }
@@ -205,8 +197,6 @@ struct OrganizeMoveView: View {
 
                     if showValidationError {
                         HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
                             Text(errorMessage)
                                 .font(.system(size: 14))
                                 .foregroundColor(.red)
